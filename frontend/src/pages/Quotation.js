@@ -1,95 +1,132 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import ProductCustomerSection from "./ProductCustomerSection";
+import BlocksSection from "./BlocksSections";
+import Page from "./Page";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import "./Quotation.css";
-import ProductCustomerSection from "./ProductCustomerSection.js";
-import BlocksSection from "./BlocksSections.js";
 
 const Quotation = ({ onLogout }) => {
-  const [quotationNumber, setQuotationNumber] = useState(""); // will show after save
+  const [quotationNumber, setQuotationNumber] = useState("");
   const [date, setDate] = useState("");
   const [status, setStatus] = useState("Draft");
   const [businessUnit, setBusinessUnit] = useState("Ambala Unit");
+  const [printData, setPrintData] = useState(null);
 
   const blocksRef = useRef();
   const customerRef = useRef();
+  const printRef = useRef();
 
   useEffect(() => {
-    const today = new Date().toISOString().split("T")[0];
-    setDate(today);
+    setDate(new Date().toISOString().split("T")[0]);
   }, []);
 
   const handleSave = async () => {
-    const blocksData = blocksRef.current.getBlocks();
-    const customerData = customerRef.current.getCustomerData();
+    const blocksData = blocksRef.current?.getBlocks() || [];
+    const customerDataRaw = customerRef.current?.getCustomerData() || {};
+
+    // Build the full customer data for PDF
+    const customerData = {
+      customer: customerDataRaw.customerName || "",
+      product: customerDataRaw.product || "",
+      quotationType: customerDataRaw.quotationType || "",
+      reference: customerDataRaw.reference || "",
+      designer: customerDataRaw.designer || "",
+      manager: customerDataRaw.manager || "",
+      shippingAddress: customerDataRaw.shippingAddress || {},
+      billingAddress: customerDataRaw.billingAddress || {},
+    };
+
+    const quotationPayload = {
+      date,
+      status,
+      businessUnit,
+      customer: customerDataRaw._id || null, // store only reference in DB
+      customerData, // full data for PDF
+      blocksData,
+    };
 
     try {
-      // Save or get customer
-      let customerId = customerData.customerId;
-      if (!customerId) {
-        const customerRes = await fetch("http://localhost:8000/api/customers", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}` },
-          body: JSON.stringify({
-            name: customerData.customer,
-            gstNumber: customerData.shippingAddress.gstNumber,
-            building: customerData.shippingAddress.building,
-            floor: customerData.shippingAddress.floor,
-            nearestLandmark: customerData.shippingAddress.nearestLandmark,
-            address: customerData.shippingAddress.address,
-            mobileNumber: customerData.shippingAddress.mobileNumber,
-          }),
-        });
-        const savedCustomer = await customerRes.json();
-        customerId = savedCustomer._id;
-      }
-
-      // Save quotation
-      const quotationRes = await fetch("http://localhost:8000/api/quotations", {
+      const res = await fetch("http://localhost:8000/api/quotations", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}` },
-        body: JSON.stringify({
-          date,
-          status,
-          businessUnit,
-          product: customerData.product,
-          quotationType: customerData.quotationType,
-          reference: customerData.reference,
-          designer: customerData.designer,
-          manager: customerData.manager,
-          customer: customerId,
-          shippingAddress: customerData.shippingAddress,
-          remarks: customerData.remarks,
-          blocks: blocksData,
-        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(quotationPayload),
       });
 
-      const savedQuotation = await quotationRes.json();
-      setQuotationNumber(savedQuotation.quotationNumber); // show generated number
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save quotation");
+
+      // Update state with returned quotation number
+      const savedQuotationNumber = data.quotation.quotationNumber || quotationNumber;
+      setQuotationNumber(savedQuotationNumber);
+      setPrintData({ ...quotationPayload, quotationNumber: savedQuotationNumber });
+
       alert("✅ Quotation saved successfully!");
-      console.log("Saved quotation data:", savedQuotation);
+      console.log("Saved quotation data:", { ...quotationPayload, quotationNumber: savedQuotationNumber });
     } catch (err) {
       console.error("Error saving quotation:", err);
-      alert("❌ Failed to save quotation.");
+      alert("❌ Error saving quotation: " + err.message);
     }
   };
 
+const handleDownloadPDF = async () => {
+  if (!printRef.current) return;
+
+  const element = printRef.current;
+
+  // Render page as canvas
+  const canvas = await html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: true, // important for cross-origin images
+  });
+
+  // Convert canvas to JPEG instead of PNG (more stable)
+  const imgData = canvas.toDataURL("image/jpeg", 1.0); // JPEG avoids PNG signature issues
+
+  const pdf = new jsPDF("p", "mm", "a4");
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+  if (pdfHeight > pdf.internal.pageSize.getHeight()) {
+    let heightLeft = pdfHeight;
+    let position = 0;
+
+    while (heightLeft > 0) {
+      pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pdf.internal.pageSize.getHeight();
+      if (heightLeft > 0) pdf.addPage();
+      position = -pdf.internal.pageSize.getHeight() * (pdfHeight - heightLeft) / pdfHeight;
+    }
+  } else {
+    pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+  }
+
+  pdf.save(`${quotationNumber || "quotation"}.pdf`);
+};
+
+
   return (
     <div className="quotation-page">
+      {/* Header */}
       <div className="quotation-header">
         <div className="left-header">
-          <button className="save-btn" onClick={handleSave}>💾 Save</button>
+          <button className="save-btn" onClick={handleSave}>Save</button>
+          <button className="save-btn" onClick={handleDownloadPDF}>Download PDF</button>
         </div>
 
         <div className="right-header">
           <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-            <button className="save-btn" onClick={onLogout}>⎋ Logout</button>
+            <button className="save-btn" onClick={onLogout}>Logout</button>
           </div>
+
           <div className="header-row">
             <div className="header-field">
               <label># Quotation:</label>
-              {/* Display generated number as text instead of input */}
-              <span className="quotation-number">
-                {quotationNumber ? quotationNumber : "Will be generated on save"}
-              </span>
+              <span className="quotation-number">{quotationNumber || "Will be generated on save"}</span>
             </div>
 
             <div className="header-field">
@@ -118,16 +155,22 @@ const Quotation = ({ onLogout }) => {
         </div>
       </div>
 
+      {/* Sections */}
       <div className="quotation-section">
         <details>
-          <summary>Product Selection and Customer KYC ↓</summary>
+          <summary>Product Selection and Customer KYC</summary>
           <ProductCustomerSection ref={customerRef} />
         </details>
 
         <details>
-          <summary>Blocks and Block Items ↓</summary>
+          <summary>Blocks and Block Items</summary>
           <BlocksSection ref={blocksRef} />
         </details>
+      </div>
+
+      {/* Hidden Page for PDF */}
+      <div className="page-print" style={{ display: "none" }}>
+        <Page ref={printRef} data={printData || {}} />
       </div>
     </div>
   );

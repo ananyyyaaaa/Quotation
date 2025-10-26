@@ -13,6 +13,7 @@
   cursor: pointer;
   transition: 0.2s;
   border: none;
+  font-family: "Inter", serif;
 }
 
 .add-block { background: #007bff; color: #fff; margin-bottom: 20px; }
@@ -36,13 +37,14 @@
 }
 
 .block-header input { flex: 1; padding: 8px 10px; border-radius: 6px; border: 1px solid #ccc; }
-.remove-btn { background: #ff4d4f; color: #fff; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+.remove-btn { background: #f44336; color: #fff; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-family: "Inter", serif; }
 
 .item-section, .addon-section, .fitting-section {
   
   border-radius: 6px;
   margin: 10px 0;
   padding: 15px;
+  flex:1;
   
 }
 .item-section{
@@ -100,9 +102,10 @@
   background-color: #f44336;
   color: white;
   border: none;
-  padding: 4px 8px;
+  padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
+  font-family: "Inter", serif;
 }
 
 .section-header .remove-btn:hover {

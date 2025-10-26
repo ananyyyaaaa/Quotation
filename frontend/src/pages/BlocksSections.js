@@ -117,8 +117,42 @@ const BlocksSection = forwardRef((props, ref) => {
   };
 
   useImperativeHandle(ref, () => ({
-    getBlocks: () => blocks,
-  }));
+  getBlocks: () => {
+    // Deep copy blocks to avoid accidental mutation
+    return blocks.map(block => ({
+      name: block.name,
+      items: block.items.map(item => ({
+        description: item.description,
+        unit: item.unit,
+        width: item.width ? Number(item.width) : "",
+        quantity: item.quantity ? Number(item.quantity) : "",
+        rate: item.rate ? Number(item.rate) : "",
+        payType: item.payType,
+        itemFinish: item.itemFinish,
+        image: item.image,
+        addons: item.addons.map(addon => ({
+          description: addon.description,
+          unit: addon.unit,
+          quantity: addon.quantity ? Number(addon.quantity) : "",
+          rate: addon.rate ? Number(addon.rate) : "",
+          payType: addon.payType,
+          itemFinish: addon.itemFinish,
+          image: addon.image,
+        })),
+        fittings: item.fittings.map(fitting => ({
+          brand: fitting.brand,
+          unit: fitting.unit,
+          quantity: fitting.quantity ? Number(fitting.quantity) : "",
+          payType: fitting.payType,
+          listPrice: fitting.listPrice ? Number(fitting.listPrice) : "",
+          description: fitting.description,
+          image: fitting.image,
+        })),
+      })),
+    }));
+  },
+}));
+
 
   function getOrdinal(n) {
     const s = ["th", "st", "nd", "rd"];
@@ -254,7 +288,7 @@ const BlocksSection = forwardRef((props, ref) => {
                 )}
               </div>
 
-              <button onClick={() => addAddon(bIdx, iIdx)}>➕ Addon Item</button>
+              <button className="add-addon-btn" onClick={() => addAddon(bIdx, iIdx)}>+ Addon Item</button>
               {item.addons.map((addon, aIdx) => (
                 <div key={aIdx} className="addon-section">
                   <div className="section-header">
@@ -381,8 +415,8 @@ const BlocksSection = forwardRef((props, ref) => {
                 </div>
               ))}
 
-              <button onClick={() => addFitting(bIdx, iIdx)}>
-                ➕ Add Fitting
+              <button className="add-fitting-btn"onClick={() => addFitting(bIdx, iIdx)}>
+                + Add Fitting
               </button>
               {item.fittings.map((fitting, fIdx) => (
                 <div key={fIdx} className="fitting-section">

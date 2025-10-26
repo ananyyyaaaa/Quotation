@@ -62,7 +62,7 @@ const Login = ({ onLogin }) => {
           padding: 10,
           borderRadius: 8,
           border: "none",
-          background: "#007bff",
+          background: "#1594e3",
           color: "white",
           cursor: "pointer",
           marginTop: 4

@@ -17,7 +17,8 @@
 }
 
 .save-btn {
-  background: #007bff;
+  background: #1594e3;
+  font-family: "Inter", serif;
   color: #fff;
   border: none;
   padding: 12px 22px;
@@ -90,6 +91,11 @@
 
 /* Optional: add hover effect */
 .quotation-section summary:hover {
-  background-color: #55a5db;
+  background-color: #0056b3;
 }
 
+.page-print {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+}

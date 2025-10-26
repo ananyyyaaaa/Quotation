@@ -2,13 +2,17 @@ import mongoose from "mongoose";
 
 const customerSchema = new mongoose.Schema(
   {
-    name: String,
-    gstNumber: String,
-    building: String,
-    floor: String,
-    nearestLandmark: String,
-    address: String,
-    mobileNumber: String,
+    name: { type: String, required: true },
+    gstNumber: { type: String },
+    building: { type: String },
+    floor: { type: String },
+    nearestLandmark: { type: String },
+    address: { type: String },
+    mobileNumber: {
+      type: String,
+      required: true,
+      unique: true, // ensures backend duplication prevention
+    },
   },
   { timestamps: true }
 );
