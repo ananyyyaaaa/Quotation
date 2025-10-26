@@ -25,7 +25,7 @@ export const register = async (req, res) => {
     const token = jwt.sign(
       { sub: user._id, username: user.username, role: user.role },
       process.env.JWT_SECRET || "dev_secret",
-      { expiresIn: "1d" }
+      { expiresIn: "24h" } // Explicitly 24 hours
     );
     res.status(201).json({ token });
   } catch (err) {
@@ -53,12 +53,24 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { sub: user._id, username: user.username, role: user.role },
       process.env.JWT_SECRET || "dev_secret",
-      { expiresIn: "1d" }
+      { expiresIn: "24h" } // Explicitly 24 hours
     );
 
     res.json({ token });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+export const validate = async (req, res) => {
+  try {
+    // If we reach here, the token is valid (ensureAuth middleware already validated it)
+    res.json({ 
+      valid: true, 
+      user: req.user 
+    });
+  } catch (err) {
+    res.status(401).json({ message: "Invalid token" });
   }
 };
 

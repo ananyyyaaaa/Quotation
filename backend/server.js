@@ -15,7 +15,8 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json()); // parse JSON bodies
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // MongoDB connection with TLS fix for Compass / Node.js
 mongoose.connect(process.env.MONGO_URI, {

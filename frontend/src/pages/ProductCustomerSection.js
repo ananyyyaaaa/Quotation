@@ -1,7 +1,11 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import PopupContainer from "../components/PopupContainer";
+import { usePopupManager } from "../hooks/usePopupManager";
 import "./ProductCustomerSection.css";
 
 const ProductCustomerSection = forwardRef((props, ref) => {
+  const { popups, showSuccess, showError, showWarning, hidePopup } = usePopupManager();
+  
   const [products] = useState([
     "ADDITIONAL - GST 18%",
     "SERVICE - GST 18%",
@@ -98,13 +102,13 @@ const ProductCustomerSection = forwardRef((props, ref) => {
   const handleAddCustomer = async () => {
     const { name, gstNumber, building, floor, nearestLandmark, address, mobileNumber } = newCustomer;
 
-    if (!name.trim()) { alert("Customer name is required"); return; }
-    if (!/^\d{10}$/.test(mobileNumber)) { alert("Mobile number must be 10 digits"); return; }
-    if (gstNumber && !/^[A-Z0-9]{15}$/.test(gstNumber)) { alert("GST number must be 15 alphanumeric"); return; }
+    if (!name.trim()) { showError("Customer name is required"); return; }
+    if (!/^\d{10}$/.test(mobileNumber)) { showError("Mobile number must be 10 digits"); return; }
+    if (gstNumber && !/^[A-Z0-9]{15}$/.test(gstNumber)) { showError("GST number must be 15 alphanumeric"); return; }
 
     const duplicate = customers.find(c => c.mobileNumber === mobileNumber);
     if (duplicate) {
-      return alert("Customer with this mobile number already exists");
+      return showWarning("Customer with this mobile number already exists");
     }
 
     try {
@@ -116,7 +120,7 @@ const ProductCustomerSection = forwardRef((props, ref) => {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Failed to add customer");
+        showError(data.message || "Failed to add customer");
         return;
       }
 
@@ -130,10 +134,10 @@ const ProductCustomerSection = forwardRef((props, ref) => {
       setMobile(data.mobileNumber || "");
       setNewCustomer({ name: "", gstNumber: "", building: "", floor: "", nearestLandmark: "", address: "", mobileNumber: "" });
       setShowAddModal(false);
-      alert("Customer added successfully!");
+      showSuccess("Customer added successfully!");
     } catch (err) {
       console.error(err);
-      alert("Error adding customer");
+      showError("Error adding customer");
     }
   };
 
@@ -172,6 +176,8 @@ const ProductCustomerSection = forwardRef((props, ref) => {
 
   return (
     <div className="kyc-container">
+      <PopupContainer popups={popups} onClose={hidePopup} />
+      
       {/* Product Details */}
       <div className="product-details">
         <h4>Product Details</h4>
@@ -227,7 +233,7 @@ const ProductCustomerSection = forwardRef((props, ref) => {
                 </option>
               ))}
             </select>
-            <button type="button" onClick={() => setShowAddModal(true)}>+ Add Customer</button>
+            <button type="button" onClick={() => setShowAddModal(true)}> Add Customer</button>
           </div>
         </div>
 
@@ -235,9 +241,9 @@ const ProductCustomerSection = forwardRef((props, ref) => {
         <div className="form-group"><label>Building</label><input value={building} onChange={e => setBuilding(e.target.value)} /></div>
         <div className="form-group"><label>Floor</label><input value={floor} onChange={e => setFloor(e.target.value)} /></div>
         <div className="form-group"><label>Nearest Landmark</label><input value={landmark} onChange={e => setLandmark(e.target.value)} /></div>
-        <div className="form-group"><label>Address</label><textarea value={address} onChange={e => setAddress(e.target.value)} /></div>
+        <div className="form-group"><label>Address</label><input value={address} onChange={e => setAddress(e.target.value)} /></div>
         <div className="form-group"><label>Mobile Number</label><input value={mobile} onChange={handleMobileChange} placeholder="10 digit number" /></div>
-        <div className="form-group"><label>Remarks</label><textarea value={remarks} onChange={e => setRemarks(e.target.value)} /></div>
+        <div className="form-group"><label>Remarks</label><input value={remarks} onChange={e => setRemarks(e.target.value)} /></div>
       </div>
 
       {/* Add Customer Modal */}

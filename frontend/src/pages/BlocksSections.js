@@ -133,6 +133,7 @@ const BlocksSection = forwardRef((props, ref) => {
         addons: item.addons.map(addon => ({
           description: addon.description,
           unit: addon.unit,
+          width: addon.width ? Number(addon.width) : "",
           quantity: addon.quantity ? Number(addon.quantity) : "",
           rate: addon.rate ? Number(addon.rate) : "",
           payType: addon.payType,
@@ -142,6 +143,7 @@ const BlocksSection = forwardRef((props, ref) => {
         fittings: item.fittings.map(fitting => ({
           brand: fitting.brand,
           unit: fitting.unit,
+          width: fitting.width ? Number(fitting.width) : "",
           quantity: fitting.quantity ? Number(fitting.quantity) : "",
           payType: fitting.payType,
           listPrice: fitting.listPrice ? Number(fitting.listPrice) : "",
@@ -163,7 +165,7 @@ const BlocksSection = forwardRef((props, ref) => {
   return (
     <div className="blocks-section">
       <button className="add-block" onClick={addBlock}>
-        + Add New Block
+        Add New Block
       </button>
 
       {blocks.map((block, bIdx) => (
@@ -181,7 +183,7 @@ const BlocksSection = forwardRef((props, ref) => {
           </div>
 
           <button className="add-item-btn" onClick={() => addItem(bIdx)}>
-            + Add Block Item
+            Add Block Item
           </button>
 
           {block.items.map((item, iIdx) => (
@@ -191,66 +193,86 @@ const BlocksSection = forwardRef((props, ref) => {
                   {getOrdinal(iIdx + 1)} Item in {block.name || "Block"}
                 </h4>
                 <button className="remove-btn" onClick={() => removeItem(bIdx, iIdx)}>
-                  🗑 Remove Item
+                  Remove Item
                 </button>
               </div>
 
 
-              <input
-                type="text"
-                placeholder="DESCRIPTION"
-                value={item.description}
-                onChange={(e) =>
-                  updateItemField(bIdx, iIdx, "description", e.target.value)
-                }
-              />
-              <select
-                value={item.unit}
-                onChange={(e) =>
-                  updateItemField(bIdx, iIdx, "unit", e.target.value)
-                }
-              >
-                <option>MTR</option>
-                <option>SQFT</option>
-                <option>RFT</option>
-                <option>EACH</option>
-                <option>SET</option>
-                <option>MM</option>
-                <option>RFTX2</option>
-              </select>
-              <input
-                type="number"
-                placeholder="Width (mm.)"
-                value={item.width}
-                onChange={(e) =>
-                  updateItemField(bIdx, iIdx, "width", e.target.value)
-                }
-              />
-              <input
-                type="number"
-                placeholder="Qty (nos.)"
-                value={item.quantity}
-                onChange={(e) =>
-                  updateItemField(bIdx, iIdx, "quantity", e.target.value)
-                }
-              />
-              <input
-                type="number"
-                placeholder="Rate (₹)"
-                value={item.rate}
-                onChange={(e) =>
-                  updateItemField(bIdx, iIdx, "rate", e.target.value)
-                }
-              />
-              <select
+              <div className="form-field-group">
+                <div className="paytype-field">
+                <label>Paytype</label>
+                <select
                 value={item.payType}
                 onChange={(e) =>
                   updateItemField(bIdx, iIdx, "payType", e.target.value)
                 }
-              >
+                >
                 <option>Paid</option>
                 <option>FOC</option>
               </select>
+                </div>
+                <div className="unit-field">
+                  <label>Unit</label>
+                  <select
+                    value={item.unit}
+                    onChange={(e) =>
+                      updateItemField(bIdx, iIdx, "unit", e.target.value)
+                    }
+                  >
+                    <option>MTR</option>
+                    <option>SQFT</option>
+                    <option>RFT</option>
+                    <option>EACH</option>
+                    <option>SET</option>
+                    <option>MM</option>
+                    <option>RFTX2</option>
+                  </select>
+                </div>
+                <div className="width-field">
+                  <label>Width (mm)</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={item.width}
+                    onChange={(e) =>
+                      updateItemField(bIdx, iIdx, "width", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="quantity-field">
+                  <label>Quantity</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={item.quantity}
+                    onChange={(e) =>
+                      updateItemField(bIdx, iIdx, "quantity", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="rate-field">
+                  <label>Rate (₹)</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={item.rate}
+                    onChange={(e) =>
+                      updateItemField(bIdx, iIdx, "rate", e.target.value)
+                    }
+                  />
+                </div>
+              </div>
+              <div className="description-field">
+                  
+                  <textarea
+                    
+                    placeholder="ITEM DESCRIPTION HERE ..."
+                    value={item.description}
+                    onChange={(e) =>
+                      updateItemField(bIdx, iIdx, "description", e.target.value)
+                    }
+                  />
+                </div>
               <textarea
                 placeholder="ITEM FINISH HERE ..."
                 value={item.itemFinish}
@@ -280,7 +302,7 @@ const BlocksSection = forwardRef((props, ref) => {
                       }
                     />
                     <span>
-                      📷 No preview available
+                      No preview available
                       <br />
                       <small>Click to upload</small>
                     </span>
@@ -288,7 +310,7 @@ const BlocksSection = forwardRef((props, ref) => {
                 )}
               </div>
 
-              <button className="add-addon-btn" onClick={() => addAddon(bIdx, iIdx)}>+ Addon Item</button>
+              <button className="add-addon-btn" onClick={() => addAddon(bIdx, iIdx)}>Addon Item</button>
               {item.addons.map((addon, aIdx) => (
                 <div key={aIdx} className="addon-section">
                   <div className="section-header">
@@ -296,60 +318,14 @@ const BlocksSection = forwardRef((props, ref) => {
                       {getOrdinal(aIdx + 1)} Addon Item in {block.name || "Block"}
                     </h4>
                     <button className="remove-btn" onClick={() => removeAddon(bIdx, iIdx, aIdx)}>
-                      🗑 Remove Addon
+                      Remove Addon
                     </button>
                   </div>
 
-                  <textarea
-                    placeholder="ITEM DESCRIPTION HERE ..."
-                    value={addon.description}
-                    onChange={(e) =>
-                      updateAddonField(
-                        bIdx,
-                        iIdx,
-                        aIdx,
-                        "description",
-                        e.target.value
-                      )
-                    }
-                  />
-                  <select
-                    value={addon.unit}
-                    onChange={(e) =>
-                      updateAddonField(bIdx, iIdx, aIdx, "unit", e.target.value)
-                    }
-                  >
-                    <option>MTR</option>
-                    <option>SQFT</option>
-                    <option>RFT</option>
-                    <option>EACH</option>
-                    <option>SET</option>
-                    <option>MM</option>
-                    <option>RFTX2</option>
-                  </select>
-                  <input
-                    type="number"
-                    placeholder="Qty (nos.)"
-                    value={addon.quantity}
-                    onChange={(e) =>
-                      updateAddonField(
-                        bIdx,
-                        iIdx,
-                        aIdx,
-                        "quantity",
-                        e.target.value
-                      )
-                    }
-                  />
-                  <input
-                    type="number"
-                    placeholder="Rate (₹)"
-                    value={addon.rate}
-                    onChange={(e) =>
-                      updateAddonField(bIdx, iIdx, aIdx, "rate", e.target.value)
-                    }
-                  />
-                  <select
+                  <div className="form-field-group">
+                    <div className="paytype-field">
+                    <label>Paytype</label>
+                    <select
                     value={addon.payType}
                     onChange={(e) =>
                       updateAddonField(
@@ -364,6 +340,81 @@ const BlocksSection = forwardRef((props, ref) => {
                     <option>Paid</option>
                     <option>FOC</option>
                   </select>
+                    </div>
+                    <div className="unit-field">
+                      <label>Unit</label>
+                      <select
+                        value={addon.unit}
+                        onChange={(e) =>
+                          updateAddonField(bIdx, iIdx, aIdx, "unit", e.target.value)
+                        }
+                      >
+                        <option>MTR</option>
+                        <option>SQFT</option>
+                        <option>RFT</option>
+                        <option>EACH</option>
+                        <option>SET</option>
+                        <option>MM</option>
+                        <option>RFTX2</option>
+                      </select>
+                    </div>
+                    <div className="width-field">
+                      <label>Width (mm)</label>
+                      <input
+                        type="number"
+                        placeholder="0"
+                        value={addon.width || ""}
+                        onChange={(e) =>
+                          updateAddonField(bIdx, iIdx, aIdx, "width", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="quantity-field">
+                      <label>Quantity</label>
+                      <input
+                        type="number"
+                        placeholder="0"
+                        value={addon.quantity}
+                        onChange={(e) =>
+                          updateAddonField(
+                            bIdx,
+                            iIdx,
+                            aIdx,
+                            "quantity",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="rate-field">
+                      <label>Rate (₹)</label>
+                      <input
+                        type="number"
+                        placeholder="0"
+                        value={addon.rate}
+                        onChange={(e) =>
+                          updateAddonField(bIdx, iIdx, aIdx, "rate", e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="description-field">
+                     
+                      <textarea
+                        placeholder="ADDON DESCRIPTION HERE ..."
+                        value={addon.description}
+                        onChange={(e) =>
+                          updateAddonField(
+                            bIdx,
+                            iIdx,
+                            aIdx,
+                            "description",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </div>
                   <textarea
                     placeholder="ITEM FINISH HERE ..."
                     value={addon.itemFinish}
@@ -401,7 +452,7 @@ const BlocksSection = forwardRef((props, ref) => {
                           }
                         />
                         <span>
-                          📷 No preview available
+                          No preview available
                           <br />
                           <small>Click to upload</small>
                         </span>
@@ -415,8 +466,8 @@ const BlocksSection = forwardRef((props, ref) => {
                 </div>
               ))}
 
-              <button className="add-fitting-btn"onClick={() => addFitting(bIdx, iIdx)}>
-                + Add Fitting
+              <button className="add-fitting-btn" onClick={() => addFitting(bIdx, iIdx)}>
+                Add Fitting
               </button>
               {item.fittings.map((fitting, fIdx) => (
                 <div key={fIdx} className="fitting-section">
@@ -425,80 +476,99 @@ const BlocksSection = forwardRef((props, ref) => {
                       {getOrdinal(fIdx + 1)} Fitting Item in {block.name || "Block"}
                     </h4>
                     <button className="remove-btn" onClick={() => removeFitting(bIdx, iIdx, fIdx)}>
-                      🗑 Remove Fitting
+                      Remove Fitting
                     </button>
                   </div>
 
 
-                  <input
-                    placeholder="Brand"
-                    value={fitting.brand}
-                    onChange={(e) =>
-                      updateFittingField(
-                        bIdx,
-                        iIdx,
-                        fIdx,
-                        "brand",
-                        e.target.value
-                      )
-                    }
-                  />
-                  <input
-                    placeholder="Unit"
-                    value={fitting.unit}
-                    onChange={(e) =>
-                      updateFittingField(
-                        bIdx,
-                        iIdx,
-                        fIdx,
-                        "unit",
-                        e.target.value
-                      )
-                    }
-                  />
-                  <input
-                    type="number"
-                    placeholder="Qty (nos.)"
-                    value={fitting.quantity}
-                    onChange={(e) =>
-                      updateFittingField(
-                        bIdx,
-                        iIdx,
-                        fIdx,
-                        "quantity",
-                        e.target.value
-                      )
-                    }
-                  />
-                  <select
-                    value={fitting.payType}
-                    onChange={(e) =>
-                      updateFittingField(
-                        bIdx,
-                        iIdx,
-                        fIdx,
-                        "payType",
-                        e.target.value
-                      )
-                    }
-                  >
-                    <option>Paid</option>
-                    <option>FOC</option>
-                  </select>
-                  <input
-                    type="number"
-                    placeholder="List Price (₹)"
-                    value={fitting.listPrice}
-                    onChange={(e) =>
-                      updateFittingField(
-                        bIdx,
-                        iIdx,
-                        fIdx,
-                        "listPrice",
-                        e.target.value
-                      )
-                    }
-                  />
+                  <div className="form-field-group">
+                    <div className="description-field">
+                      <label>Brand</label>
+                      <input
+                        placeholder="Brand name"
+                        value={fitting.brand}
+                        onChange={(e) =>
+                          updateFittingField(
+                            bIdx,
+                            iIdx,
+                            fIdx,
+                            "brand",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="unit-field">
+                      <label>Unit</label>
+                      <input
+                        placeholder="Unit"
+                        value={fitting.unit}
+                        onChange={(e) =>
+                          updateFittingField(
+                            bIdx,
+                            iIdx,
+                            fIdx,
+                            "unit",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="width-field">
+                      <label>List Price (₹)</label>
+                      <input
+                        type="number"
+                        placeholder="0"
+                        value={fitting.listPrice}
+                        onChange={(e) =>
+                          updateFittingField(
+                            bIdx,
+                            iIdx,
+                            fIdx,
+                            "listPrice",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="quantity-field">
+                      <label>Quantity</label>
+                      <input
+                        type="number"
+                        placeholder="0"
+                        value={fitting.quantity}
+                        onChange={(e) =>
+                          updateFittingField(
+                            bIdx,
+                            iIdx,
+                            fIdx,
+                            "quantity",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="rate-field">
+                      <label>Pay Type</label>
+                      <select
+                        value={fitting.payType}
+                        onChange={(e) =>
+                          updateFittingField(
+                            bIdx,
+                            iIdx,
+                            fIdx,
+                            "payType",
+                            e.target.value
+                          )
+                        }
+                      >
+                        <option>Paid</option>
+                        <option>FOC</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                
                   <textarea
                     placeholder="ENTER DESCRIPTION HERE"
                     value={fitting.description}
@@ -536,7 +606,7 @@ const BlocksSection = forwardRef((props, ref) => {
                           }
                         />
                         <span>
-                          📷 No preview available
+                          No preview available
                           <br />
                           <small>Click to upload</small>
                         </span>

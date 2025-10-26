@@ -3,12 +3,31 @@ import "./Page.css";
 import logo from "./logo.png";
 
 const Page = forwardRef(({ data = {} }, ref) => {
+  console.log("=== PAGE COMPONENT DEBUG ===");
+  console.log("Page component received data:", data);
+  console.log("Data type:", typeof data);
+  console.log("Data keys:", Object.keys(data));
+  
   const {
     quotationNumber = "___________",
     date = "__________________",
     customerData = {},
     blocksData = [],
   } = data;
+
+  // Map the customer data to the expected format
+  const customer = customerData.customerName || customerData.customer || "";
+
+  console.log("Page component parsed data:", {
+    quotationNumber,
+    date,
+    customerData,
+    blocksData,
+    customer
+  });
+  console.log("Blocks data length:", blocksData.length);
+  console.log("Customer data keys:", Object.keys(customerData));
+  console.log("=== END PAGE DEBUG ===");
 
   const d = new Date(date);
   const isValidDate = !isNaN(d.getTime());
@@ -38,7 +57,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
       });
 
       item.fittings?.forEach(fit => {
-        fittingsValue += (fit.quantity || 0) * (fit.rate || 0);
+        fittingsValue += (fit.quantity || 0) * (fit.listPrice || fit.rate || 0);
       });
     });
   });
@@ -66,8 +85,15 @@ const Page = forwardRef(({ data = {} }, ref) => {
 
   const amountInWords = `${numberToWords(totalProjectValue)} Only`;
 
+  // Always render something so we can see if the component is rendering at all
   return (
     <div className="page-container" ref={ref} style={{ overflow: "visible" }}>
+      {/* Debug info */}
+      <div style={{ backgroundColor: "#fef3c7", padding: "10px", marginBottom: "10px", fontSize: "11px", border: "1px solid #f59e0b" }}>
+        <strong>📋 QUOTATION: {quotationNumber || "N/A"}</strong><br/>
+        Date: {date || "N/A"} | Customer: {customer || "N/A"} | Blocks: {blocksData.length}
+      </div>
+      
       {/* Header */}
       <div className="header-section">
         <div className="logo-container">
@@ -75,10 +101,10 @@ const Page = forwardRef(({ data = {} }, ref) => {
         </div>
         <div className="address-container">
           <p><b>Manan Resources</b></p>
-          <p>Plot No. 5, Industrial Area Phase II</p>
-          <p>Chandigarh – 160002, India</p>
-          <p>Phone: +91-9876543210</p>
-          <p>Email: info@mananresources.com</p>
+          <p>Showroom: 297-A First Floor, Above Honda Showroom</p>
+          <p>Model Town, Ambala City, 134003,  Haryana, India</p>
+          <p>Phone: +91-8146428915</p>
+          <p>Email: info.mananresources@gmail.com</p>
         </div>
       </div>
 
@@ -93,7 +119,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
         </div>
         <div className="shipping-box">
           <h4>Shipping Address</h4>
-          <p>Mr {customerData.customer || ""}</p>
+          <p>Mr {customer || ""}</p>
           {shippingAddress.building && <p>{shippingAddress.building}</p>}
           {shippingAddress.floor && <p>Floor: {shippingAddress.floor}</p>}
           {shippingAddress.address && <p>{shippingAddress.address}</p>}
@@ -101,7 +127,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
         </div>
         <div className="billing-box">
           <h4>Billing Address</h4>
-          <p>Mr {customerData.customer || ""}</p>
+          <p>Mr {customer || ""}</p>
           {billingAddress.building || shippingAddress.building ? <p>{billingAddress.building || shippingAddress.building}</p> : null}
           {billingAddress.floor || shippingAddress.floor ? <p>Floor: {billingAddress.floor || shippingAddress.floor}</p> : null}
           {billingAddress.address || shippingAddress.address ? <p>{billingAddress.address || shippingAddress.address}</p> : null}
@@ -111,7 +137,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
 
       {/* Intro Section */}
       <section className="intro-section">
-        <p>Dear <b>{customerData.customer || ""}</b>,</p>
+        <p>Dear <b>{customer || ""}</b>,</p>
         <p>Greetings of the day!</p>
         <p>
           Based on your enquiry for <b>{customerData.product || ""}</b>, received on <b>{d.getDate()} {month} {year}</b>, 
@@ -147,7 +173,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
                         <tr>
                           <td>{`${bIdx + 1}.${iIdx + 1}`}</td>
                           <td>{item.description || "-"}</td>
-                          <td>{item.finish || "-"}</td>
+                          <td>{item.itemFinish || item.finish || "-"}</td>
                           <td>{item.width || "-"}</td>
                           <td>{item.unit || "-"}</td>
                           <td>{item.quantity || "-"}</td>
@@ -158,7 +184,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
                           <tr key={`addon-${aIdx}`} className="addon-row">
                             <td></td>
                             <td style={{ paddingLeft: "25px" }}>{`Addon: ${addon.description || "-"}`}</td>
-                            <td>{addon.finish || "-"}</td>
+                            <td>{addon.itemFinish || addon.finish || "-"}</td>
                             <td>{addon.width || "-"}</td>
                             <td>{addon.unit || "-"}</td>
                             <td>{addon.quantity || "-"}</td>
@@ -169,13 +195,13 @@ const Page = forwardRef(({ data = {} }, ref) => {
                         {item.fittings?.map((fit, fIdx) => (
                           <tr key={`fit-${fIdx}`} className="fitting-row">
                             <td></td>
-                            <td style={{ paddingLeft: "25px" }}>{`Fitting: ${fit.description || "-"}`}</td>
-                            <td>{fit.finish || "-"}</td>
+                            <td style={{ paddingLeft: "25px" }}>{`Fitting: ${fit.brand || fit.description || "-"}`}</td>
+                            <td>{fit.itemFinish || fit.finish || "-"}</td>
                             <td>{fit.width || "-"}</td>
                             <td>{fit.unit || "-"}</td>
                             <td>{fit.quantity || "-"}</td>
-                            <td>{fit.rate || "-"}</td>
-                            <td>{(fit.quantity || 0) * (fit.rate || 0)}</td>
+                            <td>{fit.listPrice || fit.rate || "-"}</td>
+                            <td>{(fit.quantity || 0) * (fit.listPrice || fit.rate || 0)}</td>
                           </tr>
                         ))}
                       </React.Fragment>

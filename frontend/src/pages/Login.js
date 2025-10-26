@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./Login.css";
 
 const Login = ({ onLogin }) => {
   const [username, setUsername] = useState("");
@@ -30,7 +31,11 @@ const Login = ({ onLogin }) => {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Login failed");
+      
+      // Store token in localStorage
       localStorage.setItem("token", data.token);
+      
+      // Notify parent component
       onLogin?.(data.token);
     } catch (err) {
       setError(err.message);
@@ -40,43 +45,41 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#f5f7fb", padding: 16 }}>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10, width: 340, padding: 28, borderRadius: 14, background: "#ffffff", boxShadow: "0 12px 32px rgba(16,24,40,0.08)", border: "1px solid #eef2f7" }}>
-        <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 6 }}>{mode === "signup" ? "Sign up" : "Sign in"}</div>
-        {error ? <div style={{ background: "#FEF3F2", color: "#B42318", border: "1px solid #FEE4E2", padding: "8px 10px", borderRadius: 8, fontSize: 13 }}>{error}</div> : null}
-        <label style={{ fontSize: 13, color: "#344054" }}>{mode === "signup" ? "Gmail address" : "Email or username"}</label>
-        <input placeholder={mode === "signup" ? "you@gmail.com" : "you@gmail.com"} value={username} onChange={(e) => setUsername(e.target.value)} style={{
-          padding: 10,
-          borderRadius: 8,
-          border: "1px solid #d0d5dd",
-          outline: "none"
-        }} />
-        <label style={{ fontSize: 13, color: "#344054" }}>Password</label>
-        <input placeholder="••••••••" type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={{
-          padding: 10,
-          borderRadius: 8,
-          border: "1px solid #d0d5dd",
-          outline: "none"
-        }} />
-        <button type="submit" disabled={loading} style={{
-          padding: 10,
-          borderRadius: 8,
-          border: "none",
-          background: "#1594e3",
-          color: "white",
-          cursor: "pointer",
-          marginTop: 4
-        }}>
+    <div className="login-container">
+      <form onSubmit={handleSubmit} className="login-form">
+        <h1 className="login-title">{mode === "signup" ? "Sign up" : "Sign in"}</h1>
+        <p className="login-subtitle">
+          {mode === "signup" ? "Create your account to get started" : "Welcome back! Please sign in to continue"}
+        </p>
+        
+        {error ? <div className="error-message">{error}</div> : null}
+        
+        <div className="form-group">
+          <label className="form-label">{mode === "signup" ? "Gmail address" : "Email or username"}</label>
+          <input 
+            className="form-input"
+            placeholder={mode === "signup" ? "you@gmail.com" : "you@gmail.com"} 
+            value={username} 
+            onChange={(e) => setUsername(e.target.value)} 
+          />
+        </div>
+        
+        <div className="form-group">
+          <label className="form-label">Password</label>
+          <input 
+            className="form-input"
+            placeholder="••••••••" 
+            type="password" 
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)} 
+          />
+        </div>
+        
+        <button type="submit" disabled={loading} className="submit-button">
           {loading ? (mode === "signup" ? "Creating..." : "Signing in...") : (mode === "signup" ? "Sign Up" : "Sign In")}
         </button>
-        <button type="button" onClick={() => setMode(mode === "signup" ? "signin" : "signup")} style={{
-          padding: 10,
-          borderRadius: 8,
-          border: "1px solid #d0d5dd",
-          background: "white",
-          color: "#344054",
-          cursor: "pointer"
-        }}>
+        
+        <button type="button" onClick={() => setMode(mode === "signup" ? "signin" : "signup")} className="toggle-button">
           {mode === "signup" ? "Have an account? Sign in" : "New here? Create account"}
         </button>
       </form>
