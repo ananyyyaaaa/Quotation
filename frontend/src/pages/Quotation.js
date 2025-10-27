@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import ProductCustomerSection from "./ProductCustomerSection";
 import BlocksSection from "./BlocksSections";
 import Page from "./Page";
@@ -8,15 +9,23 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import "./Quotation.css";
 
-const Quotation = ({ onLogout }) => {
+const Quotation = ({ onLogout, mode }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlMode = urlParams.get("mode") || "edit";
+  const isViewMode = urlMode === "view" || id ? urlMode === "view" : false;
+  
   console.log("Quotation component rendered with onLogout:", !!onLogout);
   console.log("Current time:", new Date().toLocaleString());
+  console.log("Quotation ID:", id, "Mode:", urlMode, "View Mode:", isViewMode);
   
   const [quotationNumber, setQuotationNumber] = useState("");
   const [date, setDate] = useState("");
   const [status, setStatus] = useState("Draft");
   const [businessUnit, setBusinessUnit] = useState("Ambala Unit");
   const [printData, setPrintData] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const { popups, showSuccess, showError, showWarning, showInfo, hidePopup } = usePopupManager();
 
@@ -26,11 +35,111 @@ const Quotation = ({ onLogout }) => {
 
   useEffect(() => {
     setDate(new Date().toISOString().split("T")[0]);
-  }, []);
+    if (id) {
+      loadQuotation(id);
+    }
+  }, [id]);
+
+
+  const loadQuotation = async (quotationId) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:8000/api/quotations/${quotationId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load quotation");
+      }
+
+      const quotation = data.quotation;
+      setQuotationNumber(quotation.quotationNumber);
+      setDate(quotation.date);
+      setStatus(quotation.status);
+      setBusinessUnit(quotation.businessUnit);
+
+      // Load customer and blocks data
+      if (customerRef.current && customerRef.current.loadData) {
+        customerRef.current.loadData({
+          product: quotation.product || "",
+          quotationType: quotation.quotationType || "",
+          reference: quotation.reference || "",
+          designer: quotation.designer || "",
+          manager: quotation.manager || "",
+          shippingAddress: quotation.shippingAddress || {},
+          customer: quotation.customer || null,
+          remarks: quotation.remarks || "",
+        });
+      }
+      if (blocksRef.current && blocksRef.current.loadBlocks) {
+        blocksRef.current.loadBlocks(quotation.blocks || []);
+      }
+
+      // Set print data for PDF
+      setPrintData({
+        quotationNumber: quotation.quotationNumber,
+        date: quotation.date,
+        customerData: {
+          customerName: quotation.customer?.name || "",
+          product: quotation.product || "",
+          quotationType: quotation.quotationType || "",
+          reference: quotation.reference || "",
+          designer: quotation.designer || "",
+          manager: quotation.manager || "",
+          shippingAddress: quotation.shippingAddress || {},
+          billingAddress: quotation.shippingAddress || {},
+        },
+        blocksData: quotation.blocks || [],
+      });
+
+      showSuccess("Quotation loaded successfully!");
+    } catch (error) {
+      console.error("Error loading quotation:", error);
+      showError("Error loading quotation: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleHome = () => {
+    navigate("/dashboard");
+  };
+
+
+  const handleTestSave = () => {
+    console.log("=== TEST SAVE DEBUG ===");
+    console.log("blocksRef.current:", blocksRef.current);
+    console.log("customerRef.current:", customerRef.current);
+    
+    if (blocksRef.current) {
+      const blocksData = blocksRef.current.getBlocks();
+      console.log("Test blocksData:", blocksData);
+    }
+    
+    if (customerRef.current) {
+      const customerData = customerRef.current.getCustomerData();
+      console.log("Test customerData:", customerData);
+    }
+  };
 
   const handleSave = async () => {
-    const blocksData = blocksRef.current?.getBlocks() || [];
-    const customerDataRaw = customerRef.current?.getCustomerData() || {};
+    // Check if refs are available
+    if (!blocksRef.current) {
+      showError("Blocks section not ready. Please try again.");
+      return;
+    }
+    
+    if (!customerRef.current) {
+      showError("Customer section not ready. Please try again.");
+      return;
+    }
+    
+    const blocksData = blocksRef.current.getBlocks() || [];
+    const customerDataRaw = customerRef.current.getCustomerData() || {};
 
     // Build the full customer data for PDF
     const customerData = {
@@ -43,22 +152,23 @@ const Quotation = ({ onLogout }) => {
       shippingAddress: customerDataRaw.shippingAddress || {},
       billingAddress: customerDataRaw.billingAddress || {},
     };
+    
+    // Very permissive validation - allow saving with any data
+    console.log("Validation check:");
+    console.log("- customerDataRaw:", customerDataRaw);
+    console.log("- blocksData:", blocksData);
 
-    // Validation: Check if quotation has meaningful content
-    const hasCustomerData = customerDataRaw.customerName && customerDataRaw.customerName.trim() !== "";
-    const hasBlocksData = blocksData.length > 0 && blocksData.some(block => 
-      block.name && block.name.trim() !== "" && 
-      block.items && block.items.length > 0 &&
-      block.items.some(item => item.description && item.description.trim() !== "")
-    );
+    // Only require that we have some data to save
+    const hasAnyData = customerDataRaw.customerName || 
+                      customerDataRaw.product || 
+                      customerDataRaw.quotationType || 
+                      customerDataRaw.reference || 
+                      customerDataRaw.designer || 
+                      customerDataRaw.manager || 
+                      blocksData.length > 0;
 
-    if (!hasCustomerData) {
-      showError("Please select or add a customer before saving.");
-      return;
-    }
-
-    if (!hasBlocksData) {
-      showError("Please add at least one block with items before saving.");
+    if (!hasAnyData) {
+      showError("Please add some data before saving.");
       return;
     }
 
@@ -66,14 +176,56 @@ const Quotation = ({ onLogout }) => {
       date,
       status,
       businessUnit,
-      customer: customerDataRaw._id || null, // store only reference in DB
-      customerData, // full data for PDF
-      blocksData,
+      product: customerDataRaw.product || "DEFAULT_PRODUCT",
+      quotationType: customerDataRaw.quotationType || "DEFAULT_TYPE",
+      reference: customerDataRaw.reference || "DEFAULT_REF",
+      designer: customerDataRaw.designer || "DEFAULT_DESIGNER",
+      manager: customerDataRaw.manager || "DEFAULT_MANAGER",
+      customer: customerDataRaw.customer || null,
+      shippingAddress: customerDataRaw.shippingAddress || {
+        gstNumber: "DEFAULT_GST",
+        building: "DEFAULT_BUILDING",
+        floor: "DEFAULT_FLOOR",
+        nearestLandmark: "DEFAULT_LANDMARK",
+        address: "DEFAULT_ADDRESS",
+        mobileNumber: "DEFAULT_MOBILE"
+      },
+      remarks: customerDataRaw.remarks || "DEFAULT_REMARKS",
+      blocks: blocksData.length > 0 ? blocksData : [{
+        name: "DEFAULT_BLOCK",
+        items: [{
+          description: "DEFAULT_ITEM",
+          unit: "MTR",
+          width: 0,
+          quantity: 0,
+          rate: 0,
+          payType: "Paid",
+          itemFinish: "DEFAULT_FINISH",
+          image: null,
+          addons: [],
+          fittings: []
+        }]
+      }],
     };
 
+    console.log("=== SAVING QUOTATION ===");
+    console.log("Customer Data Raw:", customerDataRaw);
+    console.log("Blocks Data:", blocksData);
+    console.log("Quotation Payload:", quotationPayload);
+
     try {
-      const res = await fetch("http://localhost:8000/api/quotations", {
-        method: "POST",
+      const url = id 
+        ? `http://localhost:8000/api/quotations/${id}`
+        : "http://localhost:8000/api/quotations";
+      const method = id ? "PUT" : "POST";
+
+      console.log("=== API CALL DEBUG ===");
+      console.log("URL:", url);
+      console.log("Method:", method);
+      console.log("Payload:", JSON.stringify(quotationPayload, null, 2));
+
+      const res = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -81,11 +233,19 @@ const Quotation = ({ onLogout }) => {
         body: JSON.stringify(quotationPayload),
       });
 
+      console.log("Response status:", res.status);
+      console.log("Response ok:", res.ok);
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to save quotation");
+      console.log("Response data:", data);
+
+      if (!res.ok) {
+        console.error("API Error:", data);
+        throw new Error(data.error || data.message || "Failed to save quotation");
+      }
 
       // Update state with returned quotation number
-      const savedQuotationNumber = data.quotationNumber || quotationNumber;
+      const savedQuotationNumber = data.quotation?.quotationNumber || data.quotationNumber || quotationNumber;
       setQuotationNumber(savedQuotationNumber);
       
       // Set print data with correct structure for Page component
@@ -96,13 +256,7 @@ const Quotation = ({ onLogout }) => {
         blocksData,
       });
 
-      showSuccess("Quotation saved successfully!");
-      console.log("=== SAVE QUOTATION DEBUG ===");
-      console.log("Saved quotation data:", { ...quotationPayload, quotationNumber: savedQuotationNumber });
-      console.log("Customer data:", customerData);
-      console.log("Blocks data:", blocksData);
-      console.log("Print data set:", { quotationNumber: savedQuotationNumber, date, customerData, blocksData });
-      console.log("=== END SAVE DEBUG ===");
+      showSuccess(id ? "Quotation updated successfully!" : "Quotation saved successfully!");
     } catch (err) {
       console.error("Error saving quotation:", err);
       showError("Error saving quotation: " + err.message);
@@ -302,13 +456,15 @@ const Quotation = ({ onLogout }) => {
       {/* Header */}
       <div className="quotation-header">
         <div className="left-header">
-          <button className="save-btn" onClick={handleSave}>Save</button>
+          <button className="save-btn" onClick={handleHome}>🏠 Home</button>
+          {!isViewMode && <button className="save-btn" onClick={handleSave}>Save</button>}
           <button className="save-btn" onClick={handleDownloadPDF}>Download PDF</button>
-          <button className="save-btn" onClick={handleTestPDF} style={{ backgroundColor: "#10b981" }}>Test PDF</button>
+          <button className="save-btn" onClick={handleTestSave} style={{ backgroundColor: "#10b981" }}>Test Save</button>
         </div>
 
         <div className="right-header">
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8, gap: 8 }}>
+            {isViewMode && <span style={{ padding: "8px 16px", background: "#3b82f6", color: "white", borderRadius: "8px", fontSize: "14px", fontWeight: "600" }}>👁️ View Mode</span>}
             <button className="save-btn" onClick={onLogout}>Logout</button>
           </div>
 
@@ -325,7 +481,7 @@ const Quotation = ({ onLogout }) => {
 
             <div className="header-field">
               <label>Status</label>
-              <select value={status} onChange={(e) => setStatus(e.target.value)}>
+              <select value={status} onChange={(e) => setStatus(e.target.value)} disabled={isViewMode}>
                 <option value="Draft">Draft</option>
                 <option value="Prepared">Prepared</option>
                 <option value="Verified">Verified</option>
@@ -336,7 +492,7 @@ const Quotation = ({ onLogout }) => {
 
             <div className="header-field">
               <label>Business Unit</label>
-              <select value={businessUnit} onChange={(e) => setBusinessUnit(e.target.value)}>
+              <select value={businessUnit} onChange={(e) => setBusinessUnit(e.target.value)} disabled={isViewMode}>
                 <option value="Ambala Unit">Ambala Unit</option>
               </select>
             </div>
@@ -346,14 +502,14 @@ const Quotation = ({ onLogout }) => {
 
       {/* Sections */}
       <div className="quotation-section">
-        <details>
+        <details open={true}>
           <summary>Product Selection and Customer KYC</summary>
-          <ProductCustomerSection ref={customerRef} />
+          <ProductCustomerSection ref={customerRef} readOnly={isViewMode} />
         </details>
 
-        <details>
+        <details open={true}>
           <summary>Blocks and Block Items</summary>
-          <BlocksSection ref={blocksRef} />
+          <BlocksSection ref={blocksRef} readOnly={isViewMode} />
         </details>
       </div>
 

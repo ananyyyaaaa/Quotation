@@ -4,6 +4,7 @@ import { usePopupManager } from "../hooks/usePopupManager";
 import "./ProductCustomerSection.css";
 
 const ProductCustomerSection = forwardRef((props, ref) => {
+  const { readOnly } = props;
   const { popups, showSuccess, showError, showWarning, hidePopup } = usePopupManager();
   
   const [products] = useState([
@@ -141,12 +142,49 @@ const ProductCustomerSection = forwardRef((props, ref) => {
     }
   };
 
+  // Load data from quotation
+  const loadData = (quotationData) => {
+    setSelectedProduct(quotationData.product || products[0]);
+    setQuotationType(quotationData.quotationType || "");
+    setReference(quotationData.reference || "");
+    setDesigner(quotationData.designer || "");
+    setManager(quotationData.manager || "");
+    
+    if (quotationData.shippingAddress) {
+      setGst(quotationData.shippingAddress.gstNumber || "");
+      setBuilding(quotationData.shippingAddress.building || "");
+      setFloor(quotationData.shippingAddress.floor || "");
+      setLandmark(quotationData.shippingAddress.nearestLandmark || "");
+      setAddress(quotationData.shippingAddress.address || "");
+      setMobile(quotationData.shippingAddress.mobileNumber || "");
+    }
+    setRemarks(quotationData.remarks || "");
+    
+    // Find customer by mobile number and select them
+    // quotationData.customer could be either:
+    // 1. A populated customer object {_id, name, mobileNumber, ...}
+    // 2. Just the _id string
+    // 3. Or an object with _id property
+    const customerId = quotationData.customer?._id || quotationData.customer;
+    const customerMobileNumber = quotationData.customer?.mobileNumber;
+    
+    if (customerMobileNumber) {
+      setCustomerMobile(customerMobileNumber);
+    } else if (customerId && customers.length > 0) {
+      // If we have customer ID but not mobile, find customer
+      const foundCustomer = customers.find(c => c._id === customerId);
+      if (foundCustomer) {
+        setCustomerMobile(foundCustomer.mobileNumber);
+      }
+    }
+  };
+
   // Expose customer data to parent
   useImperativeHandle(ref, () => ({
     getCustomerData: () => {
       const selected = customers.find(c => c.mobileNumber === customerMobile) || {};
-      return {
-        customer: selected._id || null, // MongoDB _id
+      const data = {
+        customer: selected._id || null,
         customerName: selected.name || "",
         product: selectedProduct,
         quotationType,
@@ -171,7 +209,14 @@ const ProductCustomerSection = forwardRef((props, ref) => {
         },
         remarks,
       };
+      console.log("ProductCustomerSection returning:", data);
+      console.log("Selected customer:", selected);
+      console.log("Customer mobile:", customerMobile);
+      console.log("All customers:", customers);
+      return data;
     },
+    loadData,
+    _id: customers.find(c => c.mobileNumber === customerMobile)?._id,
   }));
 
   return (
@@ -183,27 +228,27 @@ const ProductCustomerSection = forwardRef((props, ref) => {
         <h4>Product Details</h4>
         <div className="form-group">
           <label>Product</label>
-          <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)}>
+          <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)} disabled={readOnly}>
             {products.map((p, i) => <option key={i} value={p}>{p}</option>)}
           </select>
         </div>
         <div className="form-group">
           <label>Quotation Type</label>
-          <select value={quotationType} onChange={e => setQuotationType(e.target.value)}>
+          <select value={quotationType} onChange={e => setQuotationType(e.target.value)} disabled={readOnly}>
             <option value="Original">Original</option>
             <option value="Revised">Revised</option>
           </select>
         </div>
         <div className="form-group">
           <label>Reference</label>
-          <select value={reference} onChange={e => setReference(e.target.value)}>
+          <select value={reference} onChange={e => setReference(e.target.value)} disabled={readOnly}>
             <option value="">Select Reference</option>
             <option>Mr. Reference 1</option>
           </select>
         </div>
         <div className="form-group">
           <label>Designer</label>
-          <select value={designer} onChange={e => setDesigner(e.target.value)}>
+          <select value={designer} onChange={e => setDesigner(e.target.value)} disabled={readOnly}>
             <option value="">Select Designer</option>
             <option>Mr. Designer 1</option>
             {designers.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}
@@ -211,7 +256,7 @@ const ProductCustomerSection = forwardRef((props, ref) => {
         </div>
         <div className="form-group">
           <label>Manager</label>
-          <select value={manager} onChange={e => setManager(e.target.value)}>
+          <select value={manager} onChange={e => setManager(e.target.value)} disabled={readOnly}>
             <option value="">Select Manager</option>
             <option>Mr. Manager 1</option>
             {managers.map(m => <option key={m._id} value={m.name}>{m.name}</option>)}
@@ -225,7 +270,7 @@ const ProductCustomerSection = forwardRef((props, ref) => {
         <div className="form-group customer-row">
           <label>Select Customer</label>
           <div style={{ display: "flex", gap: "10px" }}>
-            <select value={customerMobile} onChange={e => setCustomerMobile(e.target.value)}>
+            <select value={customerMobile} onChange={e => setCustomerMobile(e.target.value)} disabled={readOnly}>
               <option value="">Select Customer</option>
               {customers.map(c => (
                 <option key={c.mobileNumber} value={c.mobileNumber}>
@@ -233,17 +278,17 @@ const ProductCustomerSection = forwardRef((props, ref) => {
                 </option>
               ))}
             </select>
-            <button type="button" onClick={() => setShowAddModal(true)}> Add Customer</button>
+            {!readOnly && <button type="button" onClick={() => setShowAddModal(true)}> Add Customer</button>}
           </div>
         </div>
 
-        <div className="form-group"><label>GSTIN</label><input value={gst} onChange={handleGstChange} placeholder="15 DIGIT GST NO" /></div>
-        <div className="form-group"><label>Building</label><input value={building} onChange={e => setBuilding(e.target.value)} /></div>
-        <div className="form-group"><label>Floor</label><input value={floor} onChange={e => setFloor(e.target.value)} /></div>
-        <div className="form-group"><label>Nearest Landmark</label><input value={landmark} onChange={e => setLandmark(e.target.value)} /></div>
-        <div className="form-group"><label>Address</label><input value={address} onChange={e => setAddress(e.target.value)} /></div>
-        <div className="form-group"><label>Mobile Number</label><input value={mobile} onChange={handleMobileChange} placeholder="10 digit number" /></div>
-        <div className="form-group"><label>Remarks</label><input value={remarks} onChange={e => setRemarks(e.target.value)} /></div>
+        <div className="form-group"><label>GSTIN</label><input value={gst} onChange={handleGstChange} placeholder="15 DIGIT GST NO" disabled={readOnly} /></div>
+        <div className="form-group"><label>Building</label><input value={building} onChange={e => setBuilding(e.target.value)} disabled={readOnly} /></div>
+        <div className="form-group"><label>Floor</label><input value={floor} onChange={e => setFloor(e.target.value)} disabled={readOnly} /></div>
+        <div className="form-group"><label>Nearest Landmark</label><input value={landmark} onChange={e => setLandmark(e.target.value)} disabled={readOnly} /></div>
+        <div className="form-group"><label>Address</label><input value={address} onChange={e => setAddress(e.target.value)} disabled={readOnly} /></div>
+        <div className="form-group"><label>Mobile Number</label><input value={mobile} onChange={handleMobileChange} placeholder="10 digit number" disabled={readOnly} /></div>
+        <div className="form-group"><label>Remarks</label><input value={remarks} onChange={e => setRemarks(e.target.value)} disabled={readOnly} /></div>
       </div>
 
       {/* Add Customer Modal */}

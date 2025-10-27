@@ -43,6 +43,9 @@ const getNextQuotationNumber = async () => {
 
 export const createQuotation = async (req, res) => {
   try {
+    console.log("=== BACKEND CREATE QUOTATION ===");
+    console.log("Request body:", JSON.stringify(req.body, null, 2));
+    
     const quotationNumber = await getNextQuotationNumber();
 
     // Map frontend payload to correct schema fields
@@ -50,31 +53,48 @@ export const createQuotation = async (req, res) => {
       date,
       status,
       businessUnit,
-      customerData = {},
-      blocksData = [],
+      product,
+      quotationType,
+      reference,
+      designer,
+      manager,
+      customer,
+      shippingAddress,
+      remarks,
+      blocks,
     } = req.body;
+
+    console.log("📝 Creating quotation with data:", {
+      quotationNumber,
+      customer,
+      product,
+      blocks: blocks?.length || 0,
+    });
 
     const quotation = new Quotation({
       quotationNumber,
       date,
       status,
       businessUnit,
-      product: customerData.product || "",
-      quotationType: customerData.quotationType || "",
-      reference: customerData.reference || "",
-      designer: customerData.designer || "",
-      manager: customerData.manager || "",
-      customer: customerData._id || null,
-      shippingAddress: customerData.shippingAddress || {},
-      blocks: blocksData, // now saved correctly
+      product: product || "",
+      quotationType: quotationType || "",
+      reference: reference || "",
+      designer: designer || "",
+      manager: manager || "",
+      customer: customer || null,
+      shippingAddress: shippingAddress || {},
+      remarks: remarks || "",
+      blocks: blocks || [],
     });
 
+    console.log("Quotation object before save:", quotation);
     await quotation.save();
+    console.log("Quotation saved successfully:", quotation._id);
 
     res.status(201).json({
       success: true,
       message: "Quotation saved successfully",
-      ...quotation.toObject(),
+      quotation,
     });
   } catch (error) {
     console.error("❌ Error creating quotation:", error);
@@ -118,6 +138,9 @@ export const getQuotationById = async (req, res) => {
  */
 export const updateQuotation = async (req, res) => {
   try {
+    console.log("✏️ Updating quotation:", req.params.id);
+    console.log("✏️ Update data:", req.body);
+    
     const updatedQuotation = await Quotation.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -126,6 +149,9 @@ export const updateQuotation = async (req, res) => {
     if (!updatedQuotation) {
       return res.status(404).json({ success: false, message: "Quotation not found" });
     }
+    
+    console.log("✅ Quotation updated:", updatedQuotation.customer);
+    
     res.status(200).json({ success: true, message: "Quotation updated", quotation: updatedQuotation });
   } catch (error) {
     console.error("❌ Error updating quotation:", error);

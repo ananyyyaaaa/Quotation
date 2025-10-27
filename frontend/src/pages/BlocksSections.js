@@ -2,7 +2,12 @@ import React, { useState, forwardRef, useImperativeHandle } from "react";
 import "./BlocksSection.css";
 
 const BlocksSection = forwardRef((props, ref) => {
+  const { readOnly } = props;
   const [blocks, setBlocks] = useState([]);
+
+  const loadBlocks = (blocksData) => {
+    setBlocks(blocksData || []);
+  };
 
   const addBlock = () => setBlocks([...blocks, { name: "", items: [] }]);
   const updateBlockName = (index, name) => {
@@ -117,43 +122,46 @@ const BlocksSection = forwardRef((props, ref) => {
   };
 
   useImperativeHandle(ref, () => ({
-  getBlocks: () => {
-    // Deep copy blocks to avoid accidental mutation
-    return blocks.map(block => ({
-      name: block.name,
-      items: block.items.map(item => ({
-        description: item.description,
-        unit: item.unit,
-        width: item.width ? Number(item.width) : "",
-        quantity: item.quantity ? Number(item.quantity) : "",
-        rate: item.rate ? Number(item.rate) : "",
-        payType: item.payType,
-        itemFinish: item.itemFinish,
-        image: item.image,
-        addons: item.addons.map(addon => ({
-          description: addon.description,
-          unit: addon.unit,
-          width: addon.width ? Number(addon.width) : "",
-          quantity: addon.quantity ? Number(addon.quantity) : "",
-          rate: addon.rate ? Number(addon.rate) : "",
-          payType: addon.payType,
-          itemFinish: addon.itemFinish,
-          image: addon.image,
+    getBlocks: () => {
+      const data = blocks.map(block => ({
+        name: block.name,
+        items: block.items.map(item => ({
+          description: item.description,
+          unit: item.unit,
+          width: item.width ? Number(item.width) : "",
+          quantity: item.quantity ? Number(item.quantity) : "",
+          rate: item.rate ? Number(item.rate) : "",
+          payType: item.payType,
+          itemFinish: item.itemFinish,
+          image: item.image,
+          addons: item.addons.map(addon => ({
+            description: addon.description,
+            unit: addon.unit,
+            width: addon.width ? Number(addon.width) : "",
+            quantity: addon.quantity ? Number(addon.quantity) : "",
+            rate: addon.rate ? Number(addon.rate) : "",
+            payType: addon.payType,
+            itemFinish: addon.itemFinish,
+            image: addon.image,
+          })),
+          fittings: item.fittings.map(fitting => ({
+            brand: fitting.brand,
+            unit: fitting.unit,
+            width: fitting.width ? Number(fitting.width) : "",
+            quantity: fitting.quantity ? Number(fitting.quantity) : "",
+            payType: fitting.payType,
+            listPrice: fitting.listPrice ? Number(fitting.listPrice) : "",
+            description: fitting.description,
+            image: fitting.image,
+          })),
         })),
-        fittings: item.fittings.map(fitting => ({
-          brand: fitting.brand,
-          unit: fitting.unit,
-          width: fitting.width ? Number(fitting.width) : "",
-          quantity: fitting.quantity ? Number(fitting.quantity) : "",
-          payType: fitting.payType,
-          listPrice: fitting.listPrice ? Number(fitting.listPrice) : "",
-          description: fitting.description,
-          image: fitting.image,
-        })),
-      })),
-    }));
-  },
-}));
+      }));
+      console.log("BlocksSection returning:", data);
+      console.log("Current blocks state:", blocks);
+      return data;
+    },
+    loadBlocks,
+  }));
 
 
   function getOrdinal(n) {
@@ -164,9 +172,9 @@ const BlocksSection = forwardRef((props, ref) => {
 
   return (
     <div className="blocks-section">
-      <button className="add-block" onClick={addBlock}>
+      {!readOnly && <button className="add-block" onClick={addBlock}>
         Add New Block
-      </button>
+      </button>}
 
       {blocks.map((block, bIdx) => (
         <div key={bIdx} className="block">
@@ -176,15 +184,16 @@ const BlocksSection = forwardRef((props, ref) => {
               placeholder="e.g. Living Room"
               value={block.name}
               onChange={(e) => updateBlockName(bIdx, e.target.value)}
+              disabled={readOnly}
             />
-            <button className="remove-btn" onClick={() => removeBlock(bIdx)}>
+            {!readOnly && <button className="remove-btn" onClick={() => removeBlock(bIdx)}>
               🗑 Remove Block
-            </button>
+            </button>}
           </div>
 
-          <button className="add-item-btn" onClick={() => addItem(bIdx)}>
+          {!readOnly && <button className="add-item-btn" onClick={() => addItem(bIdx)}>
             Add Block Item
-          </button>
+          </button>}
 
           {block.items.map((item, iIdx) => (
             <div key={iIdx} className="item-section">
@@ -192,9 +201,9 @@ const BlocksSection = forwardRef((props, ref) => {
                 <h4 className="item-title">
                   {getOrdinal(iIdx + 1)} Item in {block.name || "Block"}
                 </h4>
-                <button className="remove-btn" onClick={() => removeItem(bIdx, iIdx)}>
+                {!readOnly && <button className="remove-btn" onClick={() => removeItem(bIdx, iIdx)}>
                   Remove Item
-                </button>
+                </button>}
               </div>
 
 
@@ -206,6 +215,7 @@ const BlocksSection = forwardRef((props, ref) => {
                 onChange={(e) =>
                   updateItemField(bIdx, iIdx, "payType", e.target.value)
                 }
+                disabled={readOnly}
                 >
                 <option>Paid</option>
                 <option>FOC</option>
@@ -218,6 +228,7 @@ const BlocksSection = forwardRef((props, ref) => {
                     onChange={(e) =>
                       updateItemField(bIdx, iIdx, "unit", e.target.value)
                     }
+                    disabled={readOnly}
                   >
                     <option>MTR</option>
                     <option>SQFT</option>
@@ -237,6 +248,7 @@ const BlocksSection = forwardRef((props, ref) => {
                     onChange={(e) =>
                       updateItemField(bIdx, iIdx, "width", e.target.value)
                     }
+                    disabled={readOnly}
                   />
                 </div>
                 <div className="quantity-field">
@@ -248,6 +260,7 @@ const BlocksSection = forwardRef((props, ref) => {
                     onChange={(e) =>
                       updateItemField(bIdx, iIdx, "quantity", e.target.value)
                     }
+                    disabled={readOnly}
                   />
                 </div>
                 <div className="rate-field">
@@ -259,6 +272,7 @@ const BlocksSection = forwardRef((props, ref) => {
                     onChange={(e) =>
                       updateItemField(bIdx, iIdx, "rate", e.target.value)
                     }
+                    disabled={readOnly}
                   />
                 </div>
               </div>
@@ -271,6 +285,7 @@ const BlocksSection = forwardRef((props, ref) => {
                     onChange={(e) =>
                       updateItemField(bIdx, iIdx, "description", e.target.value)
                     }
+                    disabled={readOnly}
                   />
                 </div>
               <textarea
@@ -279,20 +294,21 @@ const BlocksSection = forwardRef((props, ref) => {
                 onChange={(e) =>
                   updateItemField(bIdx, iIdx, "itemFinish", e.target.value)
                 }
+                disabled={readOnly}
               />
 
               <div className="upload-section">
                 {item.image ? (
                   <div className="image-preview">
                     <img src={item.image} alt="preview" />
-                    <button
+                    {!readOnly && <button
                       className="remove-image-btn"
                       onClick={() => handleRemoveImage(bIdx, iIdx, "item")}
                     >
                       🗑 Remove Picture
-                    </button>
+                    </button>}
                   </div>
-                ) : (
+                ) : !readOnly ? (
                   <label className="upload-box">
                     <input
                       type="file"
@@ -307,19 +323,23 @@ const BlocksSection = forwardRef((props, ref) => {
                       <small>Click to upload</small>
                     </span>
                   </label>
+                ) : (
+                  <div className="upload-box">
+                    <span>No image</span>
+                  </div>
                 )}
               </div>
 
-              <button className="add-addon-btn" onClick={() => addAddon(bIdx, iIdx)}>Addon Item</button>
+              {!readOnly && <button className="add-addon-btn" onClick={() => addAddon(bIdx, iIdx)}>Addon Item</button>}
               {item.addons.map((addon, aIdx) => (
                 <div key={aIdx} className="addon-section">
                   <div className="section-header">
                     <h4 className="addon-title">
                       {getOrdinal(aIdx + 1)} Addon Item in {block.name || "Block"}
                     </h4>
-                    <button className="remove-btn" onClick={() => removeAddon(bIdx, iIdx, aIdx)}>
+                    {!readOnly && <button className="remove-btn" onClick={() => removeAddon(bIdx, iIdx, aIdx)}>
                       Remove Addon
-                    </button>
+                    </button>}
                   </div>
 
                   <div className="form-field-group">
@@ -336,6 +356,7 @@ const BlocksSection = forwardRef((props, ref) => {
                         e.target.value
                       )
                     }
+                    disabled={readOnly}
                   >
                     <option>Paid</option>
                     <option>FOC</option>
@@ -348,6 +369,7 @@ const BlocksSection = forwardRef((props, ref) => {
                         onChange={(e) =>
                           updateAddonField(bIdx, iIdx, aIdx, "unit", e.target.value)
                         }
+                        disabled={readOnly}
                       >
                         <option>MTR</option>
                         <option>SQFT</option>
@@ -367,6 +389,7 @@ const BlocksSection = forwardRef((props, ref) => {
                         onChange={(e) =>
                           updateAddonField(bIdx, iIdx, aIdx, "width", e.target.value)
                         }
+                        disabled={readOnly}
                       />
                     </div>
                     <div className="quantity-field">
@@ -384,6 +407,7 @@ const BlocksSection = forwardRef((props, ref) => {
                             e.target.value
                           )
                         }
+                        disabled={readOnly}
                       />
                     </div>
                     <div className="rate-field">
@@ -395,6 +419,7 @@ const BlocksSection = forwardRef((props, ref) => {
                         onChange={(e) =>
                           updateAddonField(bIdx, iIdx, aIdx, "rate", e.target.value)
                         }
+                        disabled={readOnly}
                       />
                     </div>
                   </div>
@@ -413,6 +438,7 @@ const BlocksSection = forwardRef((props, ref) => {
                             e.target.value
                           )
                         }
+                        disabled={readOnly}
                       />
                     </div>
                   <textarea
@@ -427,22 +453,23 @@ const BlocksSection = forwardRef((props, ref) => {
                         e.target.value
                       )
                     }
+                    disabled={readOnly}
                   />
 
                   <div className="upload-section">
                     {addon.image ? (
                       <div className="image-preview">
                         <img src={addon.image} alt="preview" />
-                        <button
+                        {!readOnly && <button
                           className="remove-image-btn"
                           onClick={() =>
                             handleRemoveImage(bIdx, iIdx, "addon", aIdx)
                           }
                         >
                           🗑 Remove Picture
-                        </button>
+                        </button>}
                       </div>
-                    ) : (
+                    ) : !readOnly ? (
                       <label className="upload-box">
                         <input
                           type="file"
@@ -457,6 +484,10 @@ const BlocksSection = forwardRef((props, ref) => {
                           <small>Click to upload</small>
                         </span>
                       </label>
+                    ) : (
+                      <div className="upload-box">
+                        <span>No image</span>
+                      </div>
                     )}
                   </div>
 
@@ -466,18 +497,18 @@ const BlocksSection = forwardRef((props, ref) => {
                 </div>
               ))}
 
-              <button className="add-fitting-btn" onClick={() => addFitting(bIdx, iIdx)}>
+              {!readOnly && <button className="add-fitting-btn" onClick={() => addFitting(bIdx, iIdx)}>
                 Add Fitting
-              </button>
+              </button>}
               {item.fittings.map((fitting, fIdx) => (
                 <div key={fIdx} className="fitting-section">
                   <div className="section-header">
                     <h4 className="fitting-title">
                       {getOrdinal(fIdx + 1)} Fitting Item in {block.name || "Block"}
                     </h4>
-                    <button className="remove-btn" onClick={() => removeFitting(bIdx, iIdx, fIdx)}>
+                    {!readOnly && <button className="remove-btn" onClick={() => removeFitting(bIdx, iIdx, fIdx)}>
                       Remove Fitting
-                    </button>
+                    </button>}
                   </div>
 
 
@@ -496,6 +527,7 @@ const BlocksSection = forwardRef((props, ref) => {
                             e.target.value
                           )
                         }
+                        disabled={readOnly}
                       />
                     </div>
                     <div className="unit-field">
@@ -512,6 +544,7 @@ const BlocksSection = forwardRef((props, ref) => {
                             e.target.value
                           )
                         }
+                        disabled={readOnly}
                       />
                     </div>
                     <div className="width-field">
@@ -529,6 +562,7 @@ const BlocksSection = forwardRef((props, ref) => {
                             e.target.value
                           )
                         }
+                        disabled={readOnly}
                       />
                     </div>
                     <div className="quantity-field">
@@ -546,6 +580,7 @@ const BlocksSection = forwardRef((props, ref) => {
                             e.target.value
                           )
                         }
+                        disabled={readOnly}
                       />
                     </div>
                     <div className="rate-field">
@@ -561,6 +596,7 @@ const BlocksSection = forwardRef((props, ref) => {
                             e.target.value
                           )
                         }
+                        disabled={readOnly}
                       >
                         <option>Paid</option>
                         <option>FOC</option>
@@ -581,22 +617,23 @@ const BlocksSection = forwardRef((props, ref) => {
                         e.target.value
                       )
                     }
+                    disabled={readOnly}
                   />
 
                   <div className="upload-section">
                     {fitting.image ? (
                       <div className="image-preview">
                         <img src={fitting.image} alt="preview" />
-                        <button
+                        {!readOnly && <button
                           className="remove-image-btn"
                           onClick={() =>
                             handleRemoveImage(bIdx, iIdx, "fitting", fIdx)
                           }
                         >
                           🗑 Remove Picture
-                        </button>
+                        </button>}
                       </div>
-                    ) : (
+                    ) : !readOnly ? (
                       <label className="upload-box">
                         <input
                           type="file"
@@ -611,6 +648,10 @@ const BlocksSection = forwardRef((props, ref) => {
                           <small>Click to upload</small>
                         </span>
                       </label>
+                    ) : (
+                      <div className="upload-box">
+                        <span>No image</span>
+                      </div>
                     )}
                   </div>
 

@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Layout from "./components/Layout";
+import Dashboard from "./pages/Dashboard";
+import Customers from "./pages/Customers";
+import Settings from "./pages/Settings";
+import Help from "./pages/Help";
 import Quotation from "./pages/Quotation";
 import Login from "./pages/Login";
 import Page from "./pages/Page";
@@ -177,7 +182,7 @@ function App() {
             !token ? (
               <Login onLogin={(t) => setToken(t)} />
             ) : (
-              <Quotation
+              <Layout
                 onLogout={() => {
                   localStorage.removeItem("token");
                   setToken(null);
@@ -185,7 +190,16 @@ function App() {
               />
             )
           }
-        />
+        >
+          {/* Nested routes for authenticated users */}
+          <Route index element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="customers" element={<Customers />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="help" element={<Help />} />
+          <Route path="quotation/new" element={<Quotation mode="edit" />} />
+          <Route path="quotation/:id" element={<Quotation />} />
+        </Route>
 
         {/* ✅ Print Page Route */}
         <Route path="/page" element={<Page />} />
