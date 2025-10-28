@@ -24,6 +24,7 @@ const Login = ({ onLogin }) => {
         }
       }
       const endpoint = mode === "signup" ? "register" : "login";
+      const API_BASE_URL=process.env.REACT_APP_BACKEND_URL;
       const res = await fetch(`${API_BASE_URL}/api/auth/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

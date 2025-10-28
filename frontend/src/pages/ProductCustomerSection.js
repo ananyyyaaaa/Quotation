@@ -52,7 +52,7 @@ const ProductCustomerSection = forwardRef((props, ref) => {
   // Fetch designers, managers, customers
   useEffect(() => {
     const authHeader = { Authorization: `Bearer ${localStorage.getItem("token")}` };
-
+    const API_BASE_URL=process.env.REACT_APP_BACKEND_URL;
     fetch(`${API_BASE_URL}/api/designers`, { headers: authHeader })
       .then(res => res.json())
       .then(data => setDesigners(Array.isArray(data) ? data : []))
@@ -113,6 +113,7 @@ const ProductCustomerSection = forwardRef((props, ref) => {
     }
 
     try {
+      const API_BASE_URL=process.env.REACT_APP_BACKEND_URL;
       const res = await fetch(`${API_BASE_URL}/api/customers`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },

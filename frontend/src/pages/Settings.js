@@ -80,7 +80,7 @@ const Settings = () => {
         defaultGst: form.defaultGst ? parseFloat(form.defaultGst) : 18,
         validityDays: form.validityDays ? parseInt(form.validityDays) : 15,
       };
-
+      const API_BASE_URL=process.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${API_BASE_URL}/api/settings`, {
         method: "POST",
         headers: {

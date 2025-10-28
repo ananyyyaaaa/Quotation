@@ -46,6 +46,7 @@ const Quotation = ({ onLogout, mode }) => {
   const loadSettings = async () => {
     try {
       const token = localStorage.getItem("token");
+      const API_BASE_URL=process.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${API_BASE_URL}/api/settings`, {
         method: "GET",
         headers: {
@@ -70,6 +71,7 @@ const Quotation = ({ onLogout, mode }) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
+      const API_BASE_URL=process.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${API_BASE_URL}/api/quotations/${quotationId}`, {
         headers: {
           Authorization: `Bearer ${token}`,

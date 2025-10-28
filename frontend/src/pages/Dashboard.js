@@ -24,7 +24,7 @@ const Dashboard = ({ onLogout }) => {
         }, 2000);
         return;
       }
-
+      const API_BASE_URL=process.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${API_BASE_URL}/api/quotations`, {
         headers: {
           Authorization: `Bearer ${token}`,
