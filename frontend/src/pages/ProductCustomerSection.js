@@ -53,17 +53,17 @@ const ProductCustomerSection = forwardRef((props, ref) => {
   useEffect(() => {
     const authHeader = { Authorization: `Bearer ${localStorage.getItem("token")}` };
 
-    fetch("http://localhost:8000/api/designers", { headers: authHeader })
+    fetch(`${API_BASE_URL}/api/designers`, { headers: authHeader })
       .then(res => res.json())
       .then(data => setDesigners(Array.isArray(data) ? data : []))
       .catch(console.error);
 
-    fetch("http://localhost:8000/api/managers", { headers: authHeader })
+    fetch(`${API_BASE_URL}/api/managers`, { headers: authHeader })
       .then(res => res.json())
       .then(data => setManagers(Array.isArray(data) ? data : []))
       .catch(console.error);
 
-    fetch("http://localhost:8000/api/customers", { headers: authHeader })
+    fetch(`${API_BASE_URL}/api/customers`, { headers: authHeader })
       .then(res => res.json())
       .then(data => setCustomers(Array.isArray(data) ? data : []))
       .catch(err => {
@@ -113,7 +113,7 @@ const ProductCustomerSection = forwardRef((props, ref) => {
     }
 
     try {
-      const res = await fetch("http://localhost:8000/api/customers", {
+      const res = await fetch(`${API_BASE_URL}/api/customers`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: JSON.stringify(newCustomer),

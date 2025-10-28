@@ -46,7 +46,7 @@ const Quotation = ({ onLogout, mode }) => {
   const loadSettings = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/api/settings", {
+      const response = await fetch(`${API_BASE_URL}/api/settings`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -70,7 +70,7 @@ const Quotation = ({ onLogout, mode }) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:8000/api/quotations/${quotationId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/quotations/${quotationId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -241,8 +241,8 @@ const Quotation = ({ onLogout, mode }) => {
 
     try {
       const url = id 
-        ? `http://localhost:8000/api/quotations/${id}`
-        : "http://localhost:8000/api/quotations";
+        ? `${API_BASE_URL}/api/quotations/${id}`
+        : `${API_BASE_URL}/api/quotations`;
       const method = id ? "PUT" : "POST";
 
       console.log("=== API CALL DEBUG ===");

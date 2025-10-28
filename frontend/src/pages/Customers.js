@@ -21,7 +21,7 @@ const Customers = () => {
         return;
       }
 
-      const response = await fetch("http://localhost:8000/api/customers", {
+      const response = await fetch(`${API_BASE_URL}/api/customers`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

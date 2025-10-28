@@ -71,7 +71,8 @@ function App() {
 
   const validateTokenInBackground = async (tokenToValidate) => {
     try {
-      const response = await fetch("http://localhost:8000/api/auth/validate", {
+      const API_BASE_URL=process.env.REACT_APP_BACKEND_URL;
+      const response = await fetch(`${API_BASE_URL}/api/auth/validate`, {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${tokenToValidate}`,

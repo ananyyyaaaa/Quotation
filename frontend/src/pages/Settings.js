@@ -25,7 +25,8 @@ const Settings = () => {
     const fetchSettings = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:8000/api/settings", {
+        const API_BASE_URL=process.env.REACT_APP_BACKEND_URL;
+        const response = await fetch(`${API_BASE_URL}/api/settings`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -80,7 +81,7 @@ const Settings = () => {
         validityDays: form.validityDays ? parseInt(form.validityDays) : 15,
       };
 
-      const response = await fetch("http://localhost:8000/api/settings", {
+      const response = await fetch(`${API_BASE_URL}/api/settings`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

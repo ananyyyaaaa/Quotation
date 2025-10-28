@@ -25,7 +25,7 @@ const Dashboard = ({ onLogout }) => {
         return;
       }
 
-      const response = await fetch("http://localhost:8000/api/quotations", {
+      const response = await fetch(`${API_BASE_URL}/api/quotations`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
