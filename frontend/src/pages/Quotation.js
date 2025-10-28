@@ -26,6 +26,7 @@ const Quotation = ({ onLogout, mode }) => {
   const [businessUnit, setBusinessUnit] = useState("Ambala Unit");
   const [printData, setPrintData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [settings, setSettings] = useState(null);
 
   const { popups, showSuccess, showError, showWarning, showInfo, hidePopup } = usePopupManager();
 
@@ -35,10 +36,34 @@ const Quotation = ({ onLogout, mode }) => {
 
   useEffect(() => {
     setDate(new Date().toISOString().split("T")[0]);
+    loadSettings();
     if (id) {
       loadQuotation(id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  const loadSettings = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:8000/api/settings", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.settings) {
+          setSettings(data.settings);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading settings:", error);
+    }
+  };
 
 
   const loadQuotation = async (quotationId) => {
@@ -94,6 +119,7 @@ const Quotation = ({ onLogout, mode }) => {
           billingAddress: quotation.shippingAddress || {},
         },
         blocksData: quotation.blocks || [],
+        settings: settings || null,
       });
 
       showSuccess("Quotation loaded successfully!");
@@ -254,6 +280,7 @@ const Quotation = ({ onLogout, mode }) => {
         date,
         customerData,
         blocksData,
+        settings: settings || null,
       });
 
       showSuccess(id ? "Quotation updated successfully!" : "Quotation saved successfully!");
@@ -515,7 +542,7 @@ const Quotation = ({ onLogout, mode }) => {
 
       {/* Page for PDF - Always visible for PDF generation */}
       <div className="page-print" style={{ position: "absolute", left: "-9999px", visibility: "visible" }}>
-        <Page ref={printRef} data={printData || {}} />
+        <Page ref={printRef} data={{ ...(printData || {}), settings: settings || null }} />
       </div>
       
       {/* Debug preview - only show if printData exists */}

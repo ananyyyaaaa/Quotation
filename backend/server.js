@@ -6,6 +6,7 @@ import cors from "cors";
 import quotationRoutes from "./routes/quotationRoutes.js";
 import customerRoutes from "./routes/customerRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import settingsRoutes from "./routes/settingsRoutes.js";
 import { ensureAuth } from "./controllers/authController.js";
 import bcrypt from "bcryptjs";
 import User from "./models/User.js";
@@ -46,6 +47,7 @@ seedAdmin().catch(console.error);
 app.use("/api/auth", authRoutes);
 app.use("/api/quotations", ensureAuth, quotationRoutes);
 app.use("/api/customers", ensureAuth, customerRoutes);
+app.use("/api/settings", ensureAuth, settingsRoutes);
 
 // Test route
 app.get("/", (req, res) => {

@@ -13,6 +13,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
     date = "__________________",
     customerData = {},
     blocksData = [],
+    settings = null,
   } = data;
 
   // Map the customer data to the expected format
@@ -100,11 +101,10 @@ const Page = forwardRef(({ data = {} }, ref) => {
           <img src={logo} alt="Company Logo" className="company-logo" />
         </div>
         <div className="address-container">
-          <p><b>Manan Resources</b></p>
-          <p>Showroom: 297-A First Floor, Above Honda Showroom</p>
-          <p>Model Town, Ambala City, 134003,  Haryana, India</p>
-          <p>Phone: +91-8146428915</p>
-          <p>Email: info.mananresources@gmail.com</p>
+          <p><b>{settings?.legalName || "Manan Resources"}</b></p>
+          <p>{settings?.address || "Showroom: 297-A First Floor, Above Honda Showroom\nModel Town, Ambala City, 134003, Haryana, India"}</p>
+          {settings?.phone && <p>Phone: {settings.phone}</p>}
+          {settings?.email && <p>Email: {settings.email}</p>}
         </div>
       </div>
 
@@ -225,11 +225,22 @@ const Page = forwardRef(({ data = {} }, ref) => {
         <div className="notes-terms-left" style={{ flex: 1, pageBreakInside: "avoid" }}>
           <div className="special-notes-box">
             <h4>Special Notes</h4>
-            <p>
-              1. Please review all measurements carefully.<br/>
-              2. Changes after production may incur extra charges.<br/>
-              3. Delivery schedules may vary depending on material availability.
-            </p>
+            {settings && settings.terms && settings.terms.trim() ? (
+              <p style={{ whiteSpace: "pre-line" }}>
+                {settings.terms.split('\n').map((line, index) => (
+                  <React.Fragment key={index}>
+                    {line}
+                    <br/>
+                  </React.Fragment>
+                ))}
+              </p>
+            ) : (
+              <p>
+                1. Please review all measurements carefully.<br/>
+                2. Changes after production may incur extra charges.<br/>
+                3. Delivery schedules may vary depending on material availability.
+              </p>
+            )}
           </div>
 
           <footer className="terms-box">

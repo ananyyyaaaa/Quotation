@@ -21,13 +21,17 @@ const Help = () => {
             <div className="card-icon">📧</div>
             <h3>Contact Support</h3>
             <p>Need help? Reach out to our support team</p>
-            <div className="contact-info">
-              <p><strong>Email:</strong> support@inoviksolutions.com</p>
-              <p><strong>Response Time:</strong> Within 24 hours</p>
+            <div className="contact-email">
+              <a href="mailto:support@inoviksolutions.com" className="email-link">
+                📧 info.mananresources@gmail.com
+              </a><br /><br />
+              <a href="" className="email-link">
+                📞 +91-8146428915 
+              </a>
             </div>
           </div>
 
-          <div className="help-card">
+          {/* <div className="help-card">
             <div className="card-icon">📚</div>
             <h3>Documentation</h3>
             <p>Learn how to use the application effectively</p>
@@ -36,9 +40,9 @@ const Help = () => {
               <a href="#" className="help-link">FAQ</a>
               <a href="#" className="help-link">Video Tutorials</a>
             </div>
-          </div>
+          </div> */}
 
-          <div className="help-card">
+          {/* <div className="help-card">
             <div className="card-icon">🆘</div>
             <h3>Quick Help</h3>
             <p>Common issues and solutions</p>
@@ -47,10 +51,10 @@ const Help = () => {
               <a href="#" className="help-link">System Requirements</a>
               <a href="#" className="help-link">Browser Compatibility</a>
             </div>
-          </div>
+          </div> */}
         </div>
 
-        <div className="help-footer">
+        {/* <div className="help-footer">
           <div className="footer-content">
             <h3>Still need help?</h3>
             <p>Don't hesitate to reach out to us at:</p>
@@ -60,7 +64,7 @@ const Help = () => {
               </a>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
