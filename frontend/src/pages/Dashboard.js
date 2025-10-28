@@ -91,7 +91,7 @@ const Dashboard = ({ onLogout }) => {
           </div>
           <div className="header-right">
             <button className="action-btn primary" onClick={handleNewQuotation}>
-              ➕ New Quotation
+              + New Quotation
             </button>
             <button className="action-btn secondary" onClick={onLogout}>
               🔓 Logout

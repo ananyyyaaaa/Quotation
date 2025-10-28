@@ -486,16 +486,16 @@ const Quotation = ({ onLogout, mode }) => {
       {/* Header */}
       <div className="quotation-header">
         <div className="left-header">
-          <button className="save-btn" onClick={handleHome}>🏠 Home</button>
-          {!isViewMode && <button className="save-btn" onClick={handleSave}>Save</button>}
-          <button className="save-btn" onClick={handleDownloadPDF}>Download PDF</button>
+          <button className="save-btn" onClick={handleHome}>🏡 Home</button>
+          {!isViewMode && <button className="save-btn" onClick={handleSave}>💾 Save</button>}
+          <button className="save-btn" onClick={handleDownloadPDF}>📥 Download PDF</button>
           {/* <button className="save-btn" onClick={handleTestSave} style={{ backgroundColor: "#10b981" }}>Test Save</button> */}
         </div>
 
         <div className="right-header">
           <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8, gap: 8 }}>
-            {isViewMode && <span style={{ padding: "8px 16px", background: "#3b82f6", color: "white", borderRadius: "8px", fontSize: "14px", fontWeight: "600" }}>👁️ View Mode</span>}
-            <button className="save-btn" onClick={onLogout}>Logout</button>
+            {isViewMode && <span className="save-btn">👁️ View Mode</span>}
+            {/* <button className="save-btn" onClick={onLogout}>🔓 Logout</button> */}
           </div>
 
           <div className="header-row">
@@ -543,7 +543,7 @@ const Quotation = ({ onLogout, mode }) => {
         </details>
       </div>
 
-      {/* Page for PDF - Always visible for PDF generation */}
+      Page for PDF - Always visible for PDF generation
       <div className="page-print" style={{ position: "absolute", left: "-9999px", visibility: "visible" }}>
         <Page ref={printRef} data={{ ...(printData || {}), settings: settings || null }} />
       </div>

@@ -38,7 +38,7 @@
 }
 
 .customer-details::before {
-  background: var(--secondary-gray);
+  background: var(--primary-blue);
 }
 
 .product-details:hover,

@@ -60,7 +60,7 @@
 }
 
 .save-btn::before {
-  content: "💾";
+  /* content: "💾"; */
   font-size: var(--text-base);
 }
 
