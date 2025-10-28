@@ -489,7 +489,7 @@ const Quotation = ({ onLogout, mode }) => {
           <button className="save-btn" onClick={handleHome}>🏠 Home</button>
           {!isViewMode && <button className="save-btn" onClick={handleSave}>Save</button>}
           <button className="save-btn" onClick={handleDownloadPDF}>Download PDF</button>
-          <button className="save-btn" onClick={handleTestSave} style={{ backgroundColor: "#10b981" }}>Test Save</button>
+          {/* <button className="save-btn" onClick={handleTestSave} style={{ backgroundColor: "#10b981" }}>Test Save</button> */}
         </div>
 
         <div className="right-header">

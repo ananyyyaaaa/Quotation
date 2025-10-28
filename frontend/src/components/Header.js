@@ -9,7 +9,7 @@ const Header = () => {
         <div className="header-left">
           <img src={logo} alt="Company Logo" className="header-logo" />
           <div className="header-brand">
-            <h1 className="company-name">Inovik Solutions</h1>
+            <h1 className="company-name">Inovik Modular Kitchen</h1>
           </div>
         </div>
       </div>

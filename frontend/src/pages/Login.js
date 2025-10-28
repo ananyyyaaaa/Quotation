@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./Login.css";
+import Header from "../components/Header";
 
 const Login = ({ onLogin }) => {
   const [username, setUsername] = useState("");
@@ -50,6 +51,8 @@ const Login = ({ onLogin }) => {
   };
 
   return (
+    <div>
+      <Header />
     <div className="login-container">
       <form onSubmit={handleSubmit} className="login-form">
         <h1 className="login-title">Sign in</h1>
@@ -83,6 +86,7 @@ const Login = ({ onLogin }) => {
         </button>
       </form>
     </div>
+  </div>
   );
 };
 
