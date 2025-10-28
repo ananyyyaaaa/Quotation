@@ -240,8 +240,8 @@ const Quotation = ({ onLogout, mode }) => {
     console.log("Customer Data Raw:", customerDataRaw);
     console.log("Blocks Data:", blocksData);
     console.log("Quotation Payload:", quotationPayload);
-    
-    API_BASE_URL=process.env.REACT_APP_BACKEND_URL;
+
+    const API_BASE_URL=process.env.REACT_APP_BACKEND_URL;
     try {
       const url = id 
         ? `${API_BASE_URL}/api/quotations/${id}`
