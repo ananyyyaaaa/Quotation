@@ -8,14 +8,7 @@ export const register = async (req, res) => {
     if (!username || !password) {
       return res.status(400).json({ message: "Username and password are required" });
     }
-    const isGmail = /^[A-Za-z0-9._%+-]+@gmail\.com$/.test(username);
-    if (!isGmail) {
-      return res.status(400).json({ message: "Please use a valid Gmail address" });
-    }
-    const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-    if (!strongPassword.test(password)) {
-      return res.status(400).json({ message: "Password must be 8+ chars, include upper, lower, and number" });
-    }
+    // Relaxed validation: accept any non-empty username/password
     const exists = await User.findOne({ username });
     if (exists) {
       return res.status(409).json({ message: "Username already exists" });
