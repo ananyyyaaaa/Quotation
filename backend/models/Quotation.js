@@ -11,6 +11,7 @@ const quotationSchema = new mongoose.Schema(
     reference: String,
     designer: String,
     manager: String,
+    category: String,
     customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
     shippingAddress: {
       gstNumber: String,
