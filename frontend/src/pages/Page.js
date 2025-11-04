@@ -86,26 +86,12 @@ const Page = forwardRef(({ data = {} }, ref) => {
     <div className="page-container" ref={ref}>
       {/* HEADER */}
       <div className="header-section">
-<<<<<<< HEAD
-            <div className="logo-container">
-              <img src={logo} alt="Company Logo" className="company-logo" />
-              {(() => {
-                const cat = String(customerData.category || "").toLowerCase();
-                if (cat.includes("modular kitchen"))
-                  return <p className="category-box">Kitchen</p>;
-                if (cat.includes("wardrobe"))
-                  return <p className="category-box">Wardrobe</p>;
-                return null;
-              })()}
-            </div>
-=======
         <div className="logo-container">
           <img src={logo} alt="Company Logo" className="company-logo" />
           {customerData.category ? (
-            <div className="category-badge">{customerData.category}</div>
+            <div className="category-box">{customerData.category}</div>
           ) : null}
         </div>
->>>>>>> 338c868 (pdf changes)
         <div className="address-container">
           <b>
             <p>{settings?.legalName || "Manan Resources"}</p>
