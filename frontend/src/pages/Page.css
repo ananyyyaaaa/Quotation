@@ -91,6 +91,7 @@
 .block-container {
   margin-bottom: 25px;
   page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 .block-name {
@@ -120,6 +121,18 @@
   padding: 5px 8px;
   text-align: left;
   vertical-align: top;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.block-table tbody tr {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.block-table {
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 .block-table th {
@@ -163,10 +176,21 @@
   align-items: flex-start;
   gap: 12px;
   margin-top: 20px;
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 .notes-terms-left {
   flex: 2;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  display: flex;
+  flex-direction: column;
+}
+
+.notes-terms-left > * {
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 .right-table {
@@ -193,9 +217,13 @@
 .special-notes-box, .terms-box, .signature-box {
   border: 1px solid #ccc;
   border-radius: 8px;
-  padding: 15px;
+  padding: 12px;
   background-color: #f8f8f8;
   margin-bottom: 10px;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  page-break-after: avoid;
+  break-after: avoid;
 }
 
 .special-notes-box h4,
@@ -203,6 +231,33 @@
   margin-bottom: 8px;
   font-size: 13px;
   color: #222;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+.terms-box p,
+.terms-box .terms-content {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  orphans: 15;
+  widows: 15;
+  display: block;
+}
+
+.terms-box {
+  max-height: fit-content;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+}
+
+.terms-box h4 {
+  flex-shrink: 0;
+}
+
+.terms-box .terms-content {
+  flex: 1;
+  min-height: 0;
 }
 
 /* ---------- Signature Box ---------- */
@@ -243,9 +298,15 @@
   .notes-and-terms-section,
   .special-notes-box,
   .terms-box,
-  .right-table {
-    page-break-inside: avoid;
-    break-inside: avoid;
+  .terms-box p,
+  .right-table,
+  .block-table,
+  .block-table tbody,
+  .block-table tbody tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
   }
 
   .page-break {

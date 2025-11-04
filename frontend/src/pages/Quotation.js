@@ -154,23 +154,30 @@ const Quotation = ({ onLogout, mode }) => {
         blocksRef.current.loadBlocks(quotation.blocks || []);
       }
 
-      // Set print data for PDF
-      setPrintData({
-        quotationNumber: quotation.quotationNumber,
-        date: quotation.date,
-        customerData: {
-          customerName: quotation.customer?.name || "",
-          product: quotation.product || "",
-          quotationType: quotation.quotationType || "",
-          reference: quotation.reference || "",
-          designer: quotation.designer || "",
-          manager: quotation.manager || "",
-          shippingAddress: quotation.shippingAddress || {},
-          billingAddress: quotation.shippingAddress || {},
-        },
-        blocksData: quotation.blocks || [],
-        settings: settings || null,
-      });
+      // Get category from customerRef if available (after a small delay to ensure it's loaded)
+      setTimeout(() => {
+        const customerDataFromRef = customerRef.current?.getCustomerData?.() || {};
+        const categoryFromRef = customerDataFromRef.category || "";
+
+        // Set print data for PDF
+        setPrintData({
+          quotationNumber: quotation.quotationNumber,
+          date: quotation.date,
+          customerData: {
+            customerName: quotation.customer?.name || "",
+            category: categoryFromRef,
+            product: quotation.product || "",
+            quotationType: quotation.quotationType || "",
+            reference: quotation.reference || "",
+            designer: quotation.designer || "",
+            manager: quotation.manager || "",
+            shippingAddress: quotation.shippingAddress || {},
+            billingAddress: quotation.shippingAddress || {},
+          },
+          blocksData: quotation.blocks || [],
+          settings: settings || null,
+        });
+      }, 100);
 
       showSuccess("Quotation loaded successfully!");
     } catch (error) {
@@ -326,11 +333,18 @@ const Quotation = ({ onLogout, mode }) => {
       const savedQuotationNumber = data.quotation?.quotationNumber || data.quotationNumber || quotationNumber;
       setQuotationNumber(savedQuotationNumber);
       
+      // Get category from customerRef to ensure it's included
+      const currentCustomerData = customerRef.current?.getCustomerData?.() || {};
+      const categoryFromRef = currentCustomerData.category || customerData.category || "";
+      
       // Set print data with correct structure for Page component
       setPrintData({
         quotationNumber: savedQuotationNumber,
         date,
-        customerData,
+        customerData: {
+          ...customerData,
+          category: categoryFromRef, // Ensure category is included
+        },
         blocksData,
         settings: settings || null,
       });
@@ -431,8 +445,30 @@ const Quotation = ({ onLogout, mode }) => {
       return;
     }
     
+    // Get the latest category from customerRef to ensure it's up to date
+    const currentCustomerData = customerRef.current?.getCustomerData?.() || {};
+    const latestCategory = currentCustomerData.category || printData.customerData?.category || "";
+    
+    console.log("📋 Category check - Latest:", latestCategory, "Current in printData:", printData.customerData?.category);
+    
+    // ALWAYS update printData with latest category before generating PDF
+    const updatedPrintData = {
+      ...printData,
+      customerData: {
+        ...printData.customerData,
+        category: latestCategory, // Always use the latest category from customerRef
+      },
+    };
+    
+    // Update state immediately
+    setPrintData(updatedPrintData);
+    
+    // Wait for state to update and component to re-render
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     console.log("✅ Data validation passed");
-    console.log("Print data:", JSON.stringify(printData, null, 2));
+    console.log("Updated print data:", JSON.stringify(updatedPrintData, null, 2));
+    console.log("Latest category:", latestCategory);
 
     const element = printRef.current;
 
@@ -487,21 +523,31 @@ const Quotation = ({ onLogout, mode }) => {
 
     console.log("📄 PDF dimensions:", { imgWidth, imgHeight });
 
-    // Add image to PDF with proper pagination (no shrinking)
-    const pageUsableHeight = pdfHeight - 20; // account for margins
-    let heightLeft = imgHeight;
-    let position = 10;
-
-    // First page
-    pdf.addImage(imgData, "JPEG", 10, position, imgWidth, imgHeight);
-    heightLeft -= pageUsableHeight;
-
-    // Additional pages (use negative y to shift image up, avoiding scaling)
-    while (heightLeft > 0) {
-      pdf.addPage();
-      position = 10 - (imgHeight - heightLeft);
+    // Add image to PDF with proper pagination (no gaps)
+    const pageUsableHeight = pdfHeight - 20; // account for margins (10mm top + 10mm bottom)
+    
+    // If content fits on one page, add it directly
+    if (imgHeight <= pageUsableHeight) {
+      pdf.addImage(imgData, "JPEG", 10, 10, imgWidth, imgHeight);
+    } else {
+      // Content spans multiple pages - split it properly without gaps
+      // Use the original image positioning approach but fix the gap issue
+      let heightLeft = imgHeight;
+      let position = 10;
+      
+      // First page
       pdf.addImage(imgData, "JPEG", 10, position, imgWidth, imgHeight);
       heightLeft -= pageUsableHeight;
+      
+      // Additional pages - ensure seamless continuation
+      while (heightLeft > 0) {
+        pdf.addPage();
+        // Calculate the correct position to continue from where previous page ended
+        // This ensures no gaps between pages
+        position = 10 - pageUsableHeight;
+        pdf.addImage(imgData, "JPEG", 10, position, imgWidth, imgHeight);
+        heightLeft -= pageUsableHeight;
+      }
     }
 
     // Save PDF
@@ -669,7 +715,11 @@ const Quotation = ({ onLogout, mode }) => {
 
        {/* Page for PDF - Always visible for PDF generation */}
       <div className="page-print" style={{ position: "absolute", left: "-9999px", visibility: "visible" }}>
-        <Page ref={printRef} data={{ ...(printData || {}), settings: settings || null }} />
+        <Page 
+          ref={printRef} 
+          key={printData?.customerData?.category || "default"} 
+          data={{ ...(printData || {}), settings: settings || null }} 
+        />
       </div> 
       
       {/* Debug preview - only show if printData exists */}

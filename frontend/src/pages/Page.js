@@ -287,33 +287,89 @@ const Page = forwardRef(({ data = {} }, ref) => {
         <div className="notes-terms-left" style={{ flex: 1, pageBreakInside: "avoid" }}>
           <div className="special-notes-box">
             <h4>Special Notes</h4>
-            {settings && settings.terms && settings.terms.trim() ? (
-              <p style={{ whiteSpace: "pre-line" }}>
-                {settings.terms.split('\n').map((line, index) => (
-                  <React.Fragment key={index}>
-                    {line}
-                    <br/>
-                  </React.Fragment>
-                ))}
-              </p>
-            ) : (
-              <p>
-                1. Please review all measurements carefully.<br/>
-                2. Changes after production may incur extra charges.<br/>
-                3. Delivery schedules may vary depending on material availability.
-              </p>
-            )}
             {(() => {
-              const cat = String(customerData.category || "").toLowerCase();
-              if (cat.includes("kitchen")) return <p>This is the kitchen.</p>;
-              if (cat.includes("wardrobe")) return <p>Wardrobe.</p>;
-              return null;
+              const categoryValue = customerData.category || "";
+              const cat = String(categoryValue).toLowerCase().trim();
+              console.log("🔍 Special Notes - Category check:", {
+                original: categoryValue,
+                lowercased: cat,
+                includesModular: cat.includes("modular"),
+                includesKitchen: cat.includes("kitchen"),
+                exactMatch: categoryValue === "Modular Kitchen",
+                fullCustomerData: customerData
+              });
+              
+              // Always prioritize category-specific notes if category is set
+              // Check for "modular kitchen" - both words together or separately
+              // More explicit checks to ensure Modular Kitchen is detected
+              const isModularKitchen = cat === "modular kitchen" || 
+                                      cat.includes("modular kitchen") || 
+                                      (cat.includes("modular") && cat.includes("kitchen")) ||
+                                      categoryValue === "Modular Kitchen" ||
+                                      categoryValue === "modular kitchen";
+              
+              if (isModularKitchen || cat.includes("kitchen")) {
+                return (
+                  <p style={{ whiteSpace: "pre-line", margin: 0 }}>
+                    1. All measurements are taken as per site conditions and final measurements will be confirmed before production.<br/>
+                    2. Please ensure proper plumbing, electrical, and gas connections are ready before installation.<br/>
+                    3. Kitchen sink, faucet, and appliances (if any) are not included in this quotation unless specifically mentioned.<br/>
+                    4. Any changes in design or measurements after confirmation may incur additional charges.<br/>
+                    5. The modular kitchen will be installed as per the approved design and layout.<br/>
+                    6. Countertop material and finish are as specified in the quotation.<br/>
+                    7. Kitchen lighting and electrical fittings are not included unless mentioned.<br/>
+                    8. Delivery and installation dates are subject to site readiness and material availability.<br/>
+                    9. Please ensure the kitchen area is clean and accessible for installation.<br/>
+                    10. Waterproofing and tiling work should be completed before kitchen installation.
+                  </p>
+                );
+              } else if (cat.includes("wardrobe")) {
+                return (
+                  <p style={{ whiteSpace: "pre-line", margin: 0 }}>
+                    1. All measurements are taken as per site conditions and final measurements will be confirmed before production.<br/>
+                    2. Wardrobe design and internal layout are as per the approved design and customer requirements.<br/>
+                    3. Please ensure proper electrical connections for wardrobe lighting (if any) are ready before installation.<br/>
+                    4. Wardrobe doors and hardware (hinges, handles, locks) are included as specified in the quotation.<br/>
+                    5. Any changes in design, dimensions, or internal configuration after confirmation may incur additional charges.<br/>
+                    6. The wardrobe will be installed as per the approved design and layout.<br/>
+                    7. Wardrobe lighting and electrical fittings are not included unless specifically mentioned.<br/>
+                    8. Delivery and installation dates are subject to site readiness and material availability.<br/>
+                    9. Please ensure the wardrobe area is clean, dry, and accessible for installation.<br/>
+                    10. Flooring and wall finishing in the wardrobe area should be completed before installation.
+                  </p>
+                );
+              } else {
+                // Default notes if category is not specified
+                return settings && settings.terms && settings.terms.trim() ? (
+                  <p style={{ whiteSpace: "pre-line", margin: 0 }}>
+                    {settings.terms.split('\n').map((line, index) => (
+                      <React.Fragment key={index}>
+                        {line}
+                        <br/>
+                      </React.Fragment>
+                    ))}
+                  </p>
+                ) : (
+                  <p style={{ margin: 0 }}>
+                    1. All measurements are taken as per site conditions and final measurements will be confirmed before production.<br/>
+                    2. Please ensure proper plumbing, electrical, and gas connections are ready before installation.<br/>
+                    3. Kitchen sink, faucet, and appliances (if any) are not included in this quotation unless specifically mentioned.<br/>
+                    4. Any changes in design or measurements after confirmation may incur additional charges.<br/>
+                    5. The modular kitchen will be installed as per the approved design and layout.<br/>
+                    6. Countertop material and finish are as specified in the quotation.<br/>
+                    7. Kitchen lighting and electrical fittings are not included unless mentioned.<br/>
+                    8. Delivery and installation dates are subject to site readiness and material availability.<br/>
+                    9. Please ensure the kitchen area is clean and accessible for installation.<br/>
+                    10. Waterproofing and tiling work should be completed before kitchen installation.
+                  </p>
+                );
+              }
             })()}
           </div>
 
-          <footer className="terms-box">
+          <footer className="terms-box" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', pageBreakAfter: 'avoid', breakAfter: 'avoid' }}>
             <h4>Terms and Conditions</h4>
-            <p>
+            <div className="terms-content" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', fontSize: '10px', lineHeight: '1.3', margin: 0 }}>
               1. All Purchase Order, Cheque, and Draft to be made in the Favour of 'Manan Resources'.<br/>
               2. 60% advance at the time of placing the order, 35% payment before dispatch of goods, 5% after installation.<br/>
               3. Delivery will be within 4 to 6 weeks days after confirmation of the order and final measurement done, with advance, subject to availability of raw material.<br/>
@@ -323,13 +379,8 @@ const Page = forwardRef(({ data = {} }, ref) => {
               7. For delivery on or above five floors, the service lift shall have to be organized by the client.<br/>
               8. The lighting part and Glass is not covered under any kind of warranty.<br/>
               9. Any paper regarding transportation, if required, to be provided by the client.<br/>
-              10. Taxes and transportation are extra as Applicable.<br/>
-              11. Prices are valid for 15 days.<br/>
-              12. All disputes will be subjected to Ambala Jurisdiction only.<br/>
-              13. There will be no guarantee of broken items.<br/>
-              14. There will be 5 Years of warranty on all products.<br/>
-              15. 2 Visits are free after that chargeable.
-            </p>
+              10. Taxes and transportation are extra as Applicable.
+            </div>
           </footer>
         </div>
 
