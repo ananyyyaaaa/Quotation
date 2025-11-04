@@ -59,7 +59,6 @@ export const createQuotation = async (req, res) => {
       reference,
       designer,
       manager,
-      category,
       customer,
       shippingAddress,
       remarks,
