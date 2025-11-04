@@ -6,6 +6,7 @@ const quotationSchema = new mongoose.Schema(
     date: String,
     status: String,
     businessUnit: String,
+    category: String,
     product: String,
     quotationType: String,
     reference: String,

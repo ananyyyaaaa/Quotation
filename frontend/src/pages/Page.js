@@ -86,6 +86,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
     <div className="page-container" ref={ref}>
       {/* HEADER */}
       <div className="header-section">
+<<<<<<< HEAD
             <div className="logo-container">
               <img src={logo} alt="Company Logo" className="company-logo" />
               {(() => {
@@ -97,6 +98,14 @@ const Page = forwardRef(({ data = {} }, ref) => {
                 return null;
               })()}
             </div>
+=======
+        <div className="logo-container">
+          <img src={logo} alt="Company Logo" className="company-logo" />
+          {customerData.category ? (
+            <div className="category-badge">{customerData.category}</div>
+          ) : null}
+        </div>
+>>>>>>> 338c868 (pdf changes)
         <div className="address-container">
           <b>
             <p>{settings?.legalName || "Manan Resources"}</p>

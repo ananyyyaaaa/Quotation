@@ -3,7 +3,7 @@
   width: 210mm;
   min-height: 297mm;
   margin: auto;
-  padding: 20mm;
+  padding: 10px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #fff;
   color: #1f2937;
@@ -20,8 +20,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
-  padding-bottom: 15px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
   border-bottom: 2px solid #3b82f6;
 }
 
@@ -47,16 +47,19 @@
   text-align: right;
   font-size: 12px;
   line-height: 1.6;
+  margin-top: 10px;
   color: #374151;
   font-weight: 500;
 }
 
 .address-container p {
   margin: 2px 0;
+  
 }
 
 .address-container p:first-child {
   font-weight: 700;
+
   font-size: 14px;
   color: #1f2937;
 }
@@ -66,7 +69,8 @@
   display: flex;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 30px;
+  margin-top: 12px;
+  margin-bottom: 22px;
 }
 
 .invoice-box, .shipping-box, .billing-box {
@@ -91,17 +95,20 @@
 
 /* ---------- Intro Section ---------- */
 .intro-section {
-  margin-bottom: 25px;
+  margin-bottom: 32px;
+  margin-top: 10px;
   font-size: 10px;
 }
 
 .intro-section p {
   margin: 5px 0;
+  margin-top: 10px;
 }
 
 /* ---------- Block Section ---------- */
 .block-container {
-  margin-bottom: 25px;
+  margin-top: 16px;
+  margin-bottom: 28px;
   page-break-inside: avoid;
   break-inside: avoid;
 }
@@ -187,9 +194,22 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  margin-top: 20px;
+  margin-top: 28px;
   page-break-inside: avoid;
   break-inside: avoid;
+}
+
+/* Category badge under the logo */
+.category-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 10px;
+  border: 2px solid #111;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 11px;
+  color: #111;
+  background: #ffffff;
 }
 
 .notes-terms-left {

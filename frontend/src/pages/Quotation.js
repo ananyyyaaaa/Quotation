@@ -140,6 +140,7 @@ const Quotation = ({ onLogout, mode }) => {
       // Load customer and blocks data
       if (customerRef.current && customerRef.current.loadData) {
         customerRef.current.loadData({
+          category: quotation.category || "",
           product: quotation.product || "",
           quotationType: quotation.quotationType || "",
           reference: quotation.reference || "",
@@ -157,7 +158,7 @@ const Quotation = ({ onLogout, mode }) => {
       // Get category from customerRef if available (after a small delay to ensure it's loaded)
       setTimeout(() => {
         const customerDataFromRef = customerRef.current?.getCustomerData?.() || {};
-        const categoryFromRef = customerDataFromRef.category || "";
+        const categoryFromRef = customerDataFromRef.category || quotation.category || "";
 
         // Set print data for PDF
         setPrintData({
@@ -260,6 +261,7 @@ const Quotation = ({ onLogout, mode }) => {
       date,
       status,
       businessUnit,
+      category: customerDataRaw.category || "",
       product: customerDataRaw.product || "DEFAULT_PRODUCT",
       quotationType: customerDataRaw.quotationType || "DEFAULT_TYPE",
       reference: customerDataRaw.reference || "DEFAULT_REF",
@@ -479,74 +481,115 @@ const Quotation = ({ onLogout, mode }) => {
       return;
     }
 
-    console.log("📸 Starting canvas capture...");
+    console.log("📸 Starting section-wise capture for clean pagination...");
     console.log("Element dimensions:", { width: element.offsetWidth, height: element.offsetHeight });
     
     // Small delay to ensure content is rendered
     await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Render page as canvas with improved settings
-    const canvas = await html2canvas(element, {
-      scale: 2, // Higher scale for better quality
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      windowWidth: element.scrollWidth,
-      windowHeight: element.scrollHeight,
-    });
-    
-    console.log("📸 Canvas created:", { width: canvas.width, height: canvas.height });
 
-    // Validate canvas dimensions
-    if (!canvas || canvas.width === 0 || canvas.height === 0) {
-      console.log("❌ Canvas is empty");
-      showError("Failed to generate PDF content. Canvas is empty.");
-      return;
-    }
-
-    console.log("✅ Canvas is valid, dimensions:", { width: canvas.width, height: canvas.height });
-    console.log("Converting canvas to image...");
-
-    // Convert canvas to JPEG
-    const imgData = canvas.toDataURL("image/jpeg", 0.95);
-
-    console.log("Creating PDF...");
-    // Create PDF
+    // PDF setup
     const pdf = new jsPDF("p", "mm", "a4");
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
-    
-    // Calculate image dimensions in PDF
-    const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const margin = 10; // 10mm margins
+    const contentWidth = pdfWidth - margin * 2;
+    const pageUsableHeight = pdfHeight - margin * 2;
+    let cursorY = margin;
 
-    console.log("📄 PDF dimensions:", { imgWidth, imgHeight });
+    // Helper: add a canvas to PDF with pagination (splits tall sections)
+    const addCanvasPaginated = (canvasToAdd) => {
+      const sectionImgHeight = (canvasToAdd.height * contentWidth) / canvasToAdd.width;
+      // If entire section taller than page, slice it
+      if (sectionImgHeight > pageUsableHeight) {
+        let remainingPx = canvasToAdd.height;
+        let sourceY = 0;
+        const pxPerMm = canvasToAdd.height / sectionImgHeight; // pixels per mm at current scaling
+        while (remainingPx > 0) {
+          const remainingMmHeight = (remainingPx / pxPerMm);
+          const mmFitThisPage = Math.min(pageUsableHeight, remainingMmHeight);
+          const pxFitThisPage = mmFitThisPage * pxPerMm;
 
-    // Add image to PDF with proper pagination (no gaps)
-    const pageUsableHeight = pdfHeight - 20; // account for margins (10mm top + 10mm bottom)
-    
-    // If content fits on one page, add it directly
-    if (imgHeight <= pageUsableHeight) {
-      pdf.addImage(imgData, "JPEG", 10, 10, imgWidth, imgHeight);
-    } else {
-      // Content spans multiple pages - split it properly without gaps
-      // Use the original image positioning approach but fix the gap issue
-      let heightLeft = imgHeight;
-      let position = 10;
-      
-      // First page
-      pdf.addImage(imgData, "JPEG", 10, position, imgWidth, imgHeight);
-      heightLeft -= pageUsableHeight;
-      
-      // Additional pages - ensure seamless continuation
-      while (heightLeft > 0) {
+          // New page if not enough space left on current
+          if (cursorY !== margin && (pdfHeight - cursorY - margin) < 1) {
+            pdf.addPage();
+            cursorY = margin;
+          }
+
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = canvasToAdd.width;
+          tempCanvas.height = pxFitThisPage;
+          const tctx = tempCanvas.getContext('2d');
+          tctx.drawImage(
+            canvasToAdd,
+            0, sourceY, canvasToAdd.width, pxFitThisPage,
+            0, 0, tempCanvas.width, tempCanvas.height
+          );
+          const chunkImg = tempCanvas.toDataURL('image/jpeg', 0.95);
+
+          // If chunk does not fit the remaining space on page, move to next page
+          const remainingSpaceMm = pdfHeight - cursorY - margin;
+          const chunkMmHeight = (tempCanvas.height * contentWidth) / tempCanvas.width;
+          if (chunkMmHeight > remainingSpaceMm + 0.1) {
+            pdf.addPage();
+            cursorY = margin;
+          }
+
+          pdf.addImage(chunkImg, 'JPEG', margin, cursorY, contentWidth, chunkMmHeight);
+          cursorY += chunkMmHeight;
+
+          sourceY += pxFitThisPage;
+          remainingPx -= pxFitThisPage;
+          if (remainingPx > 0) {
+            pdf.addPage();
+            cursorY = margin;
+          }
+        }
+        return;
+      }
+
+      // Section fits in a single page: if not enough space left, go to next page first
+      if ((pdfHeight - cursorY - margin) < sectionImgHeight) {
         pdf.addPage();
-        // Calculate the correct position to continue from where previous page ended
-        // This ensures no gaps between pages
-        position = 10 - pageUsableHeight;
-        pdf.addImage(imgData, "JPEG", 10, position, imgWidth, imgHeight);
-        heightLeft -= pageUsableHeight;
+        cursorY = margin;
+      }
+      const imgDataLocal = canvasToAdd.toDataURL('image/jpeg', 0.95);
+      pdf.addImage(imgDataLocal, 'JPEG', margin, cursorY, contentWidth, sectionImgHeight);
+      cursorY += sectionImgHeight;
+    };
+
+    // Collect sections in order
+    const sections = [
+      ...element.querySelectorAll(
+        
+        '.header-section, .top-section, .intro-section, .block-container, .notes-and-terms-section, .footer-table'
+      )
+    ];
+
+    if (!sections.length) {
+      // Fallback: render whole element if sections not found
+      const wholeCanvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+      });
+      addCanvasPaginated(wholeCanvas);
+    } else {
+      // Render each section individually
+      for (const section of sections) {
+        const sectionCanvas = await html2canvas(section, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          windowWidth: section.scrollWidth,
+          windowHeight: section.scrollHeight,
+        });
+        addCanvasPaginated(sectionCanvas);
       }
     }
 
