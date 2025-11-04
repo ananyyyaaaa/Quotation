@@ -10,8 +10,9 @@ const customerSchema = new mongoose.Schema(
     address: { type: String },
     mobileNumber: {
       type: String,
-      required: true,
+      sparce: true,
       unique: true, // ensures backend duplication prevention
+      trim: true,
     },
   },
   { timestamps: true }

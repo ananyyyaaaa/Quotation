@@ -9,6 +9,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import "./Quotation.css";
 
+
 const Quotation = ({ onLogout, mode }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -33,6 +34,53 @@ const Quotation = ({ onLogout, mode }) => {
   const blocksRef = useRef();
   const customerRef = useRef();
   const printRef = useRef();
+  const billRef = useRef();
+
+  // ===== Bill Table States (mirror Page.js) =====
+  const [gstPercent, setGstPercent] = useState(0);
+  const [specialDiscount, setSpecialDiscount] = useState(0);
+  const [woodworkValue, setWoodworkValue] = useState(0);
+  const [addonValue, setAddonValue] = useState(0);
+  const [fittingsValue, setFittingsValue] = useState(0);
+  const [appliancesValue] = useState(0);
+  const cartage = 0;
+  const packing = 0;
+  const installation = 0;
+
+  const recalcFromBlocks = () => {
+    try {
+      const blocks = blocksRef?.current?.getBlocks?.() || [];
+      let ww = 0;
+      let ad = 0;
+      let fit = 0;
+      blocks.forEach(block => {
+        (block.items || []).forEach(item => {
+          ww += (Number(item.quantity) || 0) * (Number(item.rate) || 0);
+          (item.addons || []).forEach(addon => {
+            ad += (Number(addon.quantity) || 0) * (Number(addon.rate) || 0);
+          });
+          (item.fittings || []).forEach(f => {
+            fit += (Number(f.quantity) || 0) * (Number(f.listPrice || f.rate) || 0);
+          });
+        });
+      });
+      setWoodworkValue(ww);
+      setAddonValue(ad);
+      setFittingsValue(fit);
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    const t = setInterval(recalcFromBlocks, 400);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const grossValue = woodworkValue + addonValue + cartage + packing + installation;
+  const gstAmount = (grossValue * gstPercent) / 100;
+  const woodworkTotal = grossValue + gstAmount;
+  const totalProjectValue = woodworkTotal + fittingsValue + appliancesValue;
+  const finalTotal = Math.max(0, totalProjectValue - Number(specialDiscount || 0));
 
   useEffect(() => {
     setDate(new Date().toISOString().split("T")[0]);
@@ -172,6 +220,7 @@ const Quotation = ({ onLogout, mode }) => {
     // Build the full customer data for PDF
     const customerData = {
       customer: customerDataRaw.customerName || "",
+      category: customerDataRaw.category || "",
       product: customerDataRaw.product || "",
       quotationType: customerDataRaw.quotationType || "",
       reference: customerDataRaw.reference || "",
@@ -438,29 +487,21 @@ const Quotation = ({ onLogout, mode }) => {
 
     console.log("📄 PDF dimensions:", { imgWidth, imgHeight });
 
-    // Add image to PDF
-    if (imgHeight <= pdfHeight - 20) {
-      console.log("📄 Single page PDF");
-      // Single page
-      pdf.addImage(imgData, "JPEG", 10, 10, imgWidth, imgHeight);
-    } else {
-      console.log("📄 Multi-page PDF");
-      // Multiple pages
-      let heightLeft = imgHeight;
-      let position = 10;
+    // Add image to PDF with proper pagination (no shrinking)
+    const pageUsableHeight = pdfHeight - 20; // account for margins
+    let heightLeft = imgHeight;
+    let position = 10;
 
-      while (heightLeft > 0) {
-        const pageHeight = pdfHeight - 20;
-        const currentHeight = Math.min(heightLeft, pageHeight);
-        
-        pdf.addImage(imgData, "JPEG", 10, position, imgWidth, currentHeight);
-        
-        heightLeft -= pageHeight;
-        if (heightLeft > 0) {
-          pdf.addPage();
-          position = 10 - (imgHeight - heightLeft);
-        }
-      }
+    // First page
+    pdf.addImage(imgData, "JPEG", 10, position, imgWidth, imgHeight);
+    heightLeft -= pageUsableHeight;
+
+    // Additional pages (use negative y to shift image up, avoiding scaling)
+    while (heightLeft > 0) {
+      pdf.addPage();
+      position = 10 - (imgHeight - heightLeft);
+      pdf.addImage(imgData, "JPEG", 10, position, imgWidth, imgHeight);
+      heightLeft -= pageUsableHeight;
     }
 
     // Save PDF
@@ -535,28 +576,111 @@ const Quotation = ({ onLogout, mode }) => {
         <details open={true}>
           <summary>Product Selection and Customer KYC</summary>
           <ProductCustomerSection ref={customerRef} readOnly={isViewMode} />
-        </details>
+        </details>  
 
-        <details open={true}>
+      <details open={true}>
           <summary>Blocks and Block Items</summary>
           <BlocksSection ref={blocksRef} readOnly={isViewMode} />
         </details>
+
+      <details open={true}>
+          <summary>Bill Summary</summary>
+          <div className="bill-summary">
+            <div className="bill-card">
+              <table>
+                <tbody>
+                  <tr>
+                    <td>WoodWork Value</td>
+                    <td>₹ {woodworkValue.toLocaleString()}</td>
+                  </tr>
+                  <tr>
+                    <td>Cartage</td>
+                    <td>₹ {cartage.toLocaleString()}</td>
+                  </tr>
+                  <tr>
+                    <td>Packing</td>
+                    <td>₹ {packing.toLocaleString()}</td>
+                  </tr>
+                  <tr>
+                    <td>Installation</td>
+                    <td>₹ {installation.toLocaleString()}</td>
+                  </tr>
+                  <tr>
+                    <td><b>Gross Value</b></td>
+                    <td><b>₹ {grossValue.toLocaleString()}</b></td>
+                  </tr>
+                  <tr>
+                    <td>GST (%)</td>
+                    <td>
+                      <input
+                        type="number"
+                        value={gstPercent}
+                        onChange={(e) => setGstPercent(e.target.value)}
+                        placeholder="0"
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>GST Amount</td>
+                    <td>₹ {gstAmount.toLocaleString()}</td>
+                  </tr>
+                  <tr>
+                    <td><b>WoodWork Total</b></td>
+                    <td><b>₹ {woodworkTotal.toLocaleString()}</b></td>
+                  </tr>
+                  <tr>
+                    <td>Fittings Value (B)</td>
+                    <td>₹ {fittingsValue.toLocaleString()}</td>
+                  </tr>
+                  <tr>
+                    <td>Appliances Value (C)</td>
+                    <td>₹ {appliancesValue.toLocaleString()}</td>
+                  </tr>
+                  <tr>
+                    <td><b>Total Project Value</b></td>
+                    <td><b>₹ {totalProjectValue.toLocaleString()}</b></td>
+                  </tr>
+                  <tr>
+                    <td>Special Discount</td>
+                    <td>
+                      <input
+                        type="number"
+                        value={specialDiscount}
+                        onChange={(e) => setSpecialDiscount(e.target.value)}
+                        placeholder="0"
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><b>Final Project Value</b></td>
+                    <td><b>₹ {finalTotal.toLocaleString()}</b></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
       </div>
 
-      Page for PDF - Always visible for PDF generation
+      <div className="bottom-actions">
+        {!isViewMode && <button className="save-btn" onClick={handleSave}>💾 Save</button>}
+        <button className="save-btn" onClick={handleDownloadPDF}>📥 Download PDF</button>
+      </div>
+
+       {/* Page for PDF - Always visible for PDF generation */}
       <div className="page-print" style={{ position: "absolute", left: "-9999px", visibility: "visible" }}>
         <Page ref={printRef} data={{ ...(printData || {}), settings: settings || null }} />
-      </div>
+      </div> 
       
       {/* Debug preview - only show if printData exists */}
-      {printData && (
+       {/* {printData && (
         <div style={{ marginTop: "20px", border: "2px solid #10b981", padding: "10px", backgroundColor: "#f0fdf4" }}>
           <h3 style={{ color: "#059669" }}>📄 PDF Preview Available</h3>
           <p style={{ fontSize: "12px", color: "#059669" }}>
             Quotation: {printData.quotationNumber || "N/A"} | Customer: {(printData.customerData && printData.customerData.customerName) || "N/A"} | Blocks: {printData.blocksData ? printData.blocksData.length : 0}
           </p>
         </div>
-      )}
+      )} */} 
     </div>
   );
 };

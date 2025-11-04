@@ -20,7 +20,7 @@ const Customers = () => {
         showError("Authentication required. Please login again.");
         return;
       }
-      const API_BASE_URL=process.env.REACT_APP_BACKEND_URL;
+      const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${API_BASE_URL}/api/customers`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -41,11 +41,13 @@ const Customers = () => {
     }
   };
 
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.mobileNumber.includes(searchTerm) ||
-    (customer.gstNumber && customer.gstNumber.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  // ✅ Safe filtering even if some fields are missing
+  const filteredCustomers = customers.filter((customer) => {
+    const nameMatch = customer.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const mobileMatch = customer.mobileNumber?.includes(searchTerm);
+    const gstMatch = customer.gstNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+    return nameMatch || mobileMatch || gstMatch;
+  });
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -93,8 +95,12 @@ const Customers = () => {
         ) : filteredCustomers.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">👥</div>
-            <h2>{searchTerm ? "No customers found" : "No customers yet"}</h2>
-            <p>{searchTerm ? "Try adjusting your search terms" : "Customers will appear here once added"}</p>
+            <h2>{searchTerm ? "No matching customers found" : "No customers yet"}</h2>
+            <p>
+              {searchTerm
+                ? "Try adjusting your search terms"
+                : "Customers will appear here once added"}
+            </p>
           </div>
         ) : (
           <div className="table-container">
@@ -118,9 +124,13 @@ const Customers = () => {
                       <strong>{customer.name}</strong>
                     </td>
                     <td className="mobile-number">
-                      <a href={`tel:${customer.mobileNumber}`}>
-                        {customer.mobileNumber}
-                      </a>
+                      {customer.mobileNumber ? (
+                        <a href={`tel:${customer.mobileNumber}`}>
+                          {customer.mobileNumber}
+                        </a>
+                      ) : (
+                        "N/A"
+                      )}
                     </td>
                     <td>{customer.gstNumber || "N/A"}</td>
                     <td>{customer.address || "N/A"}</td>

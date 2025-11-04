@@ -22,6 +22,7 @@ const ProductCustomerSection = forwardRef((props, ref) => {
   const [reference, setReference] = useState("");
   const [designer, setDesigner] = useState("");
   const [manager, setManager] = useState("");
+  const [category, setCategory] = useState("");
 
   const [customers, setCustomers] = useState([]);
   const [customerMobile, setCustomerMobile] = useState(""); // mobileNumber as ID
@@ -101,23 +102,52 @@ const ProductCustomerSection = forwardRef((props, ref) => {
 
   // Add new customer
   const handleAddCustomer = async () => {
-    const { name, gstNumber, building, floor, nearestLandmark, address, mobileNumber } = newCustomer;
+  const { name, gstNumber, building, floor, nearestLandmark, address, mobileNumber } = newCustomer;
 
-    if (!name.trim()) { showError("Customer name is required"); return; }
-    if (!/^\d{10}$/.test(mobileNumber)) { showError("Mobile number must be 10 digits"); return; }
-    if (gstNumber && !/^[A-Z0-9]{15}$/.test(gstNumber)) { showError("GST number must be 15 alphanumeric"); return; }
+  if (!name.trim()) {
+    showError("Customer name is required");
+    return;
+  }
 
-    const duplicate = customers.find(c => c.mobileNumber === mobileNumber);
-    if (duplicate) {
-      return showWarning("Customer with this mobile number already exists");
-    }
+  // Validate GST
+  if (gstNumber && !/^[A-Z0-9]{15}$/.test(gstNumber)) {
+    showError("GST number must be 15 alphanumeric characters");
+    return;
+  }
+
+  // Validate mobile if provided
+  // Validate mobile if provided
+if (
+  mobileNumber &&
+  mobileNumber.trim() !== "" &&
+  !/^\d{10}$/.test(mobileNumber.trim())
+) {
+  showError("Mobile number must be 10 digits if provided");
+  return;
+}
+
+// Check duplicate only if mobile number is provided
+if (mobileNumber && mobileNumber.trim() !== "") {
+  const duplicate = customers.find(
+    c => c.mobileNumber && c.mobileNumber === mobileNumber.trim()
+  );
+  if (duplicate) {
+    showWarning("Customer with this mobile number already exists");
+    return;
+  }
+}
+
 
     try {
       const API_BASE_URL=process.env.REACT_APP_BACKEND_URL;
+      const payload = {
+        ...newCustomer,
+        mobileNumber: newCustomer.mobileNumber && newCustomer.mobileNumber.trim() !== "" ? newCustomer.mobileNumber.trim() : undefined,
+      };
       const res = await fetch(`${API_BASE_URL}/api/customers`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
-        body: JSON.stringify(newCustomer),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
 
@@ -145,6 +175,7 @@ const ProductCustomerSection = forwardRef((props, ref) => {
 
   // Load data from quotation
   const loadData = (quotationData) => {
+    setCategory(quotationData.category || "");
     setSelectedProduct(quotationData.product || products[0]);
     setQuotationType(quotationData.quotationType || "");
     setReference(quotationData.reference || "");
@@ -169,15 +200,15 @@ const ProductCustomerSection = forwardRef((props, ref) => {
     const customerId = quotationData.customer?._id || quotationData.customer;
     const customerMobileNumber = quotationData.customer?.mobileNumber;
     
-    if (customerMobileNumber) {
-      setCustomerMobile(customerMobileNumber);
-    } else if (customerId && customers.length > 0) {
-      // If we have customer ID but not mobile, find customer
-      const foundCustomer = customers.find(c => c._id === customerId);
-      if (foundCustomer) {
-        setCustomerMobile(foundCustomer.mobileNumber);
-      }
-    }
+    if (customerMobileNumber && customerMobileNumber.trim() !== "") {
+  setCustomerMobile(customerMobileNumber.trim());
+} else if (customerId && customers.length > 0) {
+  const foundCustomer = customers.find(c => c._id === customerId);
+  if (foundCustomer && foundCustomer.mobileNumber) {
+    setCustomerMobile(foundCustomer.mobileNumber.trim());
+  }
+}
+
   };
 
   // Expose customer data to parent
@@ -187,6 +218,7 @@ const ProductCustomerSection = forwardRef((props, ref) => {
       const data = {
         customer: selected._id || null,
         customerName: selected.name || "",
+        category,
         product: selectedProduct,
         quotationType,
         reference,
@@ -227,6 +259,13 @@ const ProductCustomerSection = forwardRef((props, ref) => {
       {/* Product Details */}
       <div className="product-details">
         <h4>Product Details</h4>
+        <div className="form-group">
+          <label>Category</label>
+          <select value={category} onChange={e => setCategory(e.target.value)} disabled={readOnly}>
+            <option value="Modular Kitchen">Modular Kitchen</option>
+            <option value="Wardrobe">Wardrobe</option>
+          </select>
+        </div>
         <div className="form-group">
           <label>Product</label>
           <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)} disabled={readOnly}>
