@@ -315,7 +315,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
               if (isModularKitchen || cat.includes("kitchen")) {
                 return (
                   <p style={{ whiteSpace: "pre-line", margin: 0 }}>
-                    1. 
+                    1. All civil, Plumbing & Electrical Work will be done by client him/herself.<br/>
                   </p>
                 );
               } else if (cat.includes("wardrobe")) {

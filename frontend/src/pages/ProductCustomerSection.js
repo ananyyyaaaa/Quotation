@@ -18,7 +18,7 @@ const ProductCustomerSection = forwardRef((props, ref) => {
     "WARDROBE - GST 18%",
   ]);
 
-  const [quotationType, setQuotationType] = useState("");
+  const [quotationType, setQuotationType] = useState("Original");
   const [reference, setReference] = useState("");
   const [designer, setDesigner] = useState("");
   const [manager, setManager] = useState("");

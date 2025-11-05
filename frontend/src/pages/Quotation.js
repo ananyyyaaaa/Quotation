@@ -263,7 +263,7 @@
         businessUnit,
         category: customerDataRaw.category || "",
         product: customerDataRaw.product || "DEFAULT_PRODUCT",
-        quotationType: customerDataRaw.quotationType || "Origia",
+        quotationType: customerDataRaw.quotationType || "Original",
         reference: customerDataRaw.reference || "DEFAULT_REF",
         designer: customerDataRaw.designer || "DEFAULT_DESIGNER",
         manager: customerDataRaw.manager || "DEFAULT_MANAGER",
