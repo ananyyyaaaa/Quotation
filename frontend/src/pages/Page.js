@@ -390,21 +390,24 @@ const Page = forwardRef(({ data = {} }, ref) => {
               </tr>
               <tr>
                 <td>Cartage</td>
-                <td>₹ {cartage.toLocaleString()}</td>
+                {/* <td>₹ {cartage.toLocaleString()}</td> */}
+                <td>As Per Actual</td>
               </tr>
               <tr>
                 <td>Packing</td>
-                <td>₹ {packing.toLocaleString()}</td>
+                {/* <td>₹ {packing.toLocaleString()}</td> */}
+                <td>As Per Actual</td>
               </tr>
               <tr>
                 <td>Installation</td>
-                <td>₹ {installation.toLocaleString()}</td>
+                {/* <td>₹ {installation.toLocaleString()}</td> */}
+                <td>As Per Actual</td>
               </tr>
               <tr>
                 <td><b>Gross Value</b></td>
                 <td><b>₹ {grossValue.toLocaleString()}</b></td>
               </tr>
-              <tr>
+              {/* <tr>
                 <td>GST (%)</td>
                 <td>
                   <input
@@ -415,10 +418,11 @@ const Page = forwardRef(({ data = {} }, ref) => {
                     placeholder="0"
                   />
                 </td>
-              </tr>
+              </tr> */}
               <tr>
                 <td>GST Amount</td>
-                <td>₹ {gstAmount.toLocaleString()}</td>
+                {/* <td>₹ {gstAmount.toLocaleString()}</td> */}
+                <td>As Per Actual</td>
               </tr>
               <tr>
                 <td><b>WoodWork Total</b></td>
@@ -430,7 +434,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
               </tr>
               <tr>
                 <td>Appliances Value (C)</td>
-                <td>₹ {appliancesValue.toLocaleString()}</td>
+                <td>₹ {addonValue.toLocaleString()}</td>
               </tr>
               <tr>
                 <td><b>Total Project Value</b></td>
@@ -439,13 +443,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
               <tr>
                 <td>Special Discount</td>
                 <td>
-                  <input
-                    type="number"
-                    value={specialDiscount}
-                    onChange={(e) => setSpecialDiscount(e.target.value)}
-                    style={{ width: "80%", textAlign: "center" }}
-                    placeholder="0"
-                  />
+                  {specialDiscount || 0 }
                 </td>
               </tr>
               <tr>

@@ -679,7 +679,7 @@ const Quotation = ({ onLogout, mode }) => {
               <table>
                 <tbody>
                   <tr>
-                    <td>WoodWork Value</td>
+                    <td>WoodWork Value (A)</td>
                     <td>₹ {woodworkValue.toLocaleString()}</td>
                   </tr>
                   <tr>
@@ -723,7 +723,7 @@ const Quotation = ({ onLogout, mode }) => {
                   </tr>
                   <tr>
                     <td>Appliances Value (C)</td>
-                    <td>₹ {appliancesValue.toLocaleString()}</td>
+                    <td>₹ {addonValue.toLocaleString()}</td>
                   </tr>
                   <tr>
                     <td><b>Total Project Value</b></td>
