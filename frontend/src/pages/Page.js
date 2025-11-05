@@ -88,10 +88,16 @@ const Page = forwardRef(({ data = {} }, ref) => {
       <div className="header-section">
         <div className="logo-container">
           <img src={logo} alt="Company Logo" className="company-logo" />
-          {customerData.category ? (
-            <div className="category-box">{customerData.category}</div>
-          ) : null}
+          
+          {(() => { const cat = String(customerData.category || "").toLowerCase(); 
+            if (cat.includes("modular kitchen")) return <p className="category-box">Kitchen</p>; 
+            if (cat.includes("wardrobe")) return <p className="category-box">Wardrobe</p>; 
+            // console.log("🧾 customerData.category =", customerData.category); 
+            return null;
+            })()}
+            
         </div>
+        
         <div className="address-container">
           <b>
             <p>{settings?.legalName || "Manan Resources"}</p>
@@ -132,7 +138,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
           {billingAddress.nearestLandmark || shippingAddress.nearestLandmark ? <p>Landmark: {billingAddress.nearestLandmark || shippingAddress.nearestLandmark}</p> : null}
         </div>
       </div>
-
+            
       {/* INTRO SECTION */}
       <section className="intro-section">
         <p>Dear <b>{customer || ""}</b>,</p>
@@ -144,6 +150,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
         <p>For clarifications or queries, please feel free to contact your relationship manager at the details above.</p>
         <p>This proposal is valid for <b>15</b> days, i.e., till <b>{validTill}</b>.</p>
       </section>
+      
 
       {/* BLOCKS SECTION */}
       <section className="block-section">
@@ -308,31 +315,27 @@ const Page = forwardRef(({ data = {} }, ref) => {
               if (isModularKitchen || cat.includes("kitchen")) {
                 return (
                   <p style={{ whiteSpace: "pre-line", margin: 0 }}>
-                    1. All measurements are taken as per site conditions and final measurements will be confirmed before production.<br/>
-                    2. Please ensure proper plumbing, electrical, and gas connections are ready before installation.<br/>
-                    3. Kitchen sink, faucet, and appliances (if any) are not included in this quotation unless specifically mentioned.<br/>
-                    4. Any changes in design or measurements after confirmation may incur additional charges.<br/>
-                    5. The modular kitchen will be installed as per the approved design and layout.<br/>
-                    6. Countertop material and finish are as specified in the quotation.<br/>
-                    7. Kitchen lighting and electrical fittings are not included unless mentioned.<br/>
-                    8. Delivery and installation dates are subject to site readiness and material availability.<br/>
-                    9. Please ensure the kitchen area is clean and accessible for installation.<br/>
-                    10. Waterproofing and tiling work should be completed before kitchen installation.
+                    1. 
                   </p>
                 );
               } else if (cat.includes("wardrobe")) {
                 return (
                   <p style={{ whiteSpace: "pre-line", margin: 0 }}>
-                    1. All measurements are taken as per site conditions and final measurements will be confirmed before production.<br/>
-                    2. Wardrobe design and internal layout are as per the approved design and customer requirements.<br/>
-                    3. Please ensure proper electrical connections for wardrobe lighting (if any) are ready before installation.<br/>
-                    4. Wardrobe doors and hardware (hinges, handles, locks) are included as specified in the quotation.<br/>
-                    5. Any changes in design, dimensions, or internal configuration after confirmation may incur additional charges.<br/>
-                    6. The wardrobe will be installed as per the approved design and layout.<br/>
-                    7. Wardrobe lighting and electrical fittings are not included unless specifically mentioned.<br/>
-                    8. Delivery and installation dates are subject to site readiness and material availability.<br/>
-                    9. Please ensure the wardrobe area is clean, dry, and accessible for installation.<br/>
-                    10. Flooring and wall finishing in the wardrobe area should be completed before installation.
+                    1 soft close drawer is included in 35 square feet area (For extra drawer Rs 4200 will be charged).<br/>
+
+                    2 No any accessory is included in above cost and Accessories(if required) will be charged Rs. 7500/onward.<br/>
+
+                    3 Sensor light will be charged @ Rs 7500/-each.<br/>
+
+                    4 There is no any kind of warranty of lights.<br/>
+
+                    5 Special Hanging rod (Imported) Rs. 3800/-will be charged.<br/>
+
+                    6 Hinges will be soft close.<br/>
+
+                    7 In sliding wardrobe, sliding fitting cost will be extra as per actual.<br/>
+
+                    8 Fabric, leather & stone will be provided by the client.<br/>
                   </p>
                 );
               } else {
@@ -348,16 +351,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
                   </p>
                 ) : (
                   <p style={{ margin: 0 }}>
-                    1. All measurements are taken as per site conditions and final measurements will be confirmed before production.<br/>
-                    2. Please ensure proper plumbing, electrical, and gas connections are ready before installation.<br/>
-                    3. Kitchen sink, faucet, and appliances (if any) are not included in this quotation unless specifically mentioned.<br/>
-                    4. Any changes in design or measurements after confirmation may incur additional charges.<br/>
-                    5. The modular kitchen will be installed as per the approved design and layout.<br/>
-                    6. Countertop material and finish are as specified in the quotation.<br/>
-                    7. Kitchen lighting and electrical fittings are not included unless mentioned.<br/>
-                    8. Delivery and installation dates are subject to site readiness and material availability.<br/>
-                    9. Please ensure the kitchen area is clean and accessible for installation.<br/>
-                    10. Waterproofing and tiling work should be completed before kitchen installation.
+                    ""
                   </p>
                 );
               }
@@ -367,16 +361,37 @@ const Page = forwardRef(({ data = {} }, ref) => {
           <footer className="terms-box" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', pageBreakAfter: 'avoid', breakAfter: 'avoid' }}>
             <h4>Terms and Conditions</h4>
             <div className="terms-content" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', fontSize: '10px', lineHeight: '1.3', margin: 0 }}>
-              1. All Purchase Order, Cheque, and Draft to be made in the Favour of 'Manan Resources'.<br/>
+            Terms and Conditions:
+
+              1. All Purchase Order, Cheque, and Draft to be made in the Favour of "Manan Resources".<br/>
+
               2. 60% advance at the time of placing the order, 35% payment before dispatch of goods, 5% after installation.<br/>
+
               3. Delivery will be within 4 to 6 weeks days after confirmation of the order and final measurement done, with advance, subject to availability of raw material.<br/>
-              4. Delivery is subject to realization of cheque / DD or Cash.<br/>
+
+              4. Delivery is subject to realization of cheque/DD or Cash.<br/>
+
               5. Goods once sold can't be returned or exchanged.<br/>
-              6. Cancellation of confirmed order is not allowed and advance is non-refundable.<br/>
+
+              6. Cancellation of confirmed order is not allowed and advance is non-refundabile.<br/>
+
               7. For delivery on or above five floors, the service lift shall have to be organized by the client.<br/>
-              8. The lighting part and Glass is not covered under any kind of warranty.<br/>
-              9. Any paper regarding transportation, if required, to be provided by the client.<br/>
-              10. Taxes and transportation are extra as Applicable.
+
+              8. The Sigliding part and Glass is not covered under any kind of warranty.<br/>
+
+              5. Any paper regarding transportation, if required, to be prowded by the client.<br/>
+
+              10. Taxes and transportation are extra as Applicable.<br/>
+
+              11. Prices are valid for 15 days.<br/>
+
+              12. All disputes will be subjected to Ambala Junsdiction only.<br/>
+
+              13. There will be no guarantee of broken tems.<br/>
+
+              14. There will be 5 ears of warranty on all products.<br/>
+
+              15. 2 Visits are free after that chargeable.<br/>
             </div>
           </footer>
         </div>
@@ -443,7 +458,13 @@ const Page = forwardRef(({ data = {} }, ref) => {
               <tr>
                 <td>Special Discount</td>
                 <td>
-                  {specialDiscount || 0 }
+                  <input
+                    type="number"
+                    value={specialDiscount}
+                    onChange={(e) => setSpecialDiscount(e.target.value)}
+                    style={{ width: "80%", textAlign: "center" }}
+                  />
+
                 </td>
               </tr>
               <tr>
@@ -458,43 +479,38 @@ const Page = forwardRef(({ data = {} }, ref) => {
         </div>
       </section>
 
-
       <div className="footer-table">
-  <table>
-    <tbody>
-      <tr>
-        <td>
-          <h1>Company Details</h1>
-          <p>Company Name: Manan Resources</p>
-          <p>Bank Details: IDFC FIRST BANK LTD, A/c No. 10205212942</p>
-          <p>IFSC Code: IDFB0021392</p>
-          <p>Branch Name: Ambala Cantt. Branch</p>
-        </td>
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <h1>Company Details</h1>
+                <p>Company Name: Manan Resources</p>
+                <p>Bank Details: IDFC FIRST BANK LTD, A/c No. 10205212942</p>
+                <p>IFSC Code: IDFB0021392</p>
+                <p>Branch Name: Ambala Cantt. Branch</p>
+              </td>
 
-        <td>
-          <p>PAN: AZDPT2931P</p>
-          <p>GSTIN: 06AZDPT2931P1ZV</p>
-          <p>TAN:</p>
-        </td>
+              <td>
+                <p>PAN: AZDPT2931P</p>
+                <p>GSTIN: 06AZDPT2931P1ZV</p>
+                <p>TAN:</p>
+              </td>
 
-        <td className="sign-col">
-          <div className="sign-space"></div>
-          <p>Auth. Signatory Sign.</p>
-        </td>
+              <td className="sign-col">
+                <div className="sign-space"></div>
+                <p>Auth. Signatory Sign.</p>
+              </td>
 
-        <td className="sign-col">
-          <div className="sign-space"></div>
-          <p>Client Sign.</p>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-
-
-    </div>
-      
+              <td className="sign-col">
+                <div className="sign-space"></div>
+                <p>Client Sign.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>   
   );
 });
 

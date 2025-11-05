@@ -77,7 +77,6 @@ export const createQuotation = async (req, res) => {
       date,
       status,
       businessUnit,
-      category: category || "",
       product: product || "",
       quotationType: quotationType || "",
       reference: reference || "",

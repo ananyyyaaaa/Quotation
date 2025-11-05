@@ -684,21 +684,24 @@ const Quotation = ({ onLogout, mode }) => {
                   </tr>
                   <tr>
                     <td>Cartage</td>
-                    <td>₹ {cartage.toLocaleString()}</td>
+                    {/* <td>₹ {cartage.toLocaleString()}</td> */}
+                    <td>As Per Actual</td>
                   </tr>
                   <tr>
                     <td>Packing</td>
-                    <td>₹ {packing.toLocaleString()}</td>
+                    {/* <td>₹ {packing.toLocaleString()}</td> */}
+                    <td>As Per Actual</td>
                   </tr>
                   <tr>
                     <td>Installation</td>
-                    <td>₹ {installation.toLocaleString()}</td>
+                    {/* <td>₹ {installation.toLocaleString()}</td> */}
+                    <td>As Per Actual</td>
                   </tr>
                   <tr>
                     <td><b>Gross Value</b></td>
                     <td><b>₹ {grossValue.toLocaleString()}</b></td>
                   </tr>
-                  <tr>
+                  {/* <tr>
                     <td>GST (%)</td>
                     <td>
                       <input
@@ -708,10 +711,11 @@ const Quotation = ({ onLogout, mode }) => {
                         placeholder="0"
                       />
                     </td>
-                  </tr>
+                  </tr> */}
                   <tr>
                     <td>GST Amount</td>
-                    <td>₹ {gstAmount.toLocaleString()}</td>
+                    {/* <td>₹ {gstAmount.toLocaleString()}</td> */}
+                    <td>As Per Actual</td>
                   </tr>
                   <tr>
                     <td><b>WoodWork Total</b></td>
@@ -736,6 +740,7 @@ const Quotation = ({ onLogout, mode }) => {
                         type="number"
                         value={specialDiscount}
                         onChange={(e) => setSpecialDiscount(e.target.value)}
+                        style={{ width: "80%", textAlign: "center" }}
                         placeholder="0"
                       />
                     </td>
