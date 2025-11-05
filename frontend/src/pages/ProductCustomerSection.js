@@ -22,7 +22,7 @@ const ProductCustomerSection = forwardRef((props, ref) => {
   const [reference, setReference] = useState("");
   const [designer, setDesigner] = useState("");
   const [manager, setManager] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState("Modular Kitchen");
 
   const [customers, setCustomers] = useState([]);
   const [customerMobile, setCustomerMobile] = useState(""); // mobileNumber as ID
