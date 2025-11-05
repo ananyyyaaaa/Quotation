@@ -136,6 +136,8 @@
         setDate(quotation.date);
         setStatus(quotation.status);
         setBusinessUnit(quotation.businessUnit);
+        setSpecialDiscount(quotation.specialDiscount || 0);
+
 
         // Load customer and blocks data
         if (customerRef.current && customerRef.current.loadData) {
@@ -177,6 +179,8 @@
             },
             blocksData: quotation.blocks || [],
             settings: settings || null,
+            specialDiscount: quotation.specialDiscount || 0,
+            finalProjectValue: Math.max(0, totalProjectValue - Number(specialDiscount || 0)),
           });
         }, 100);
 
@@ -277,6 +281,8 @@
           mobileNumber: "DEFAULT_MOBILE"
         },
         remarks: customerDataRaw.remarks || "DEFAULT_REMARKS",
+        specialDiscount: Number(specialDiscount) || 0,
+        finalProjectValue: Math.max(0, totalProjectValue - Number(specialDiscount || 0)),
         blocks: blocksData.length > 0 ? blocksData : [{
           name: "DEFAULT_BLOCK",
           items: [{

@@ -27,8 +27,8 @@ const Page = forwardRef(({ data = {} }, ref) => {
   const { shippingAddress = {}, billingAddress = {} } = customerData;
 
   // ===== STATES =====
-  const [specialDiscount, setSpecialDiscount] = useState(0);
-  const [gstPercent, setGstPercent] = useState(0);
+  const [specialDiscount, setSpecialDiscount] = useState(data.specialDiscount || 0);
+  const [gstPercent, setGstPercent] = useState(data.gstPercent || 0);
 
   // ===== CALCULATIONS =====
   let woodworkValue = 0;
@@ -59,7 +59,8 @@ const Page = forwardRef(({ data = {} }, ref) => {
   const gstAmount = (grossValue * gstPercent) / 100;
   const woodworkTotal = grossValue + gstAmount;
   const totalProjectValue = woodworkTotal + fittingsValue + addonValue + appliancesValue;
-  const finalTotal = Math.max(0, totalProjectValue - Number(specialDiscount || 0));
+  const finalTotal = data.finalProjectValue || Math.max(0, totalProjectValue - Number(specialDiscount || 0));
+
 
   // ===== Number to Words =====
   const numberToWords = (num) => {
