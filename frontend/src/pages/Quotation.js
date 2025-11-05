@@ -76,10 +76,10 @@ const Quotation = ({ onLogout, mode }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const grossValue = woodworkValue + addonValue + cartage + packing + installation;
+  const grossValue = woodworkValue + cartage + packing + installation;
   const gstAmount = (grossValue * gstPercent) / 100;
   const woodworkTotal = grossValue + gstAmount;
-  const totalProjectValue = woodworkTotal + fittingsValue + appliancesValue;
+  const totalProjectValue = woodworkTotal + fittingsValue + appliancesValue + addonValue;
   const finalTotal = Math.max(0, totalProjectValue - Number(specialDiscount || 0));
 
   useEffect(() => {
