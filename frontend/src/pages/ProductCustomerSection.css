@@ -154,6 +154,32 @@
   font-weight: var(--font-bold);
 }
 
+.form-group .add-entity-btn {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-family: var(--font-primary);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+
+.form-group .add-entity-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.form-group .add-entity-btn::before {
+  content: "+";
+  margin-right: var(--space-1);
+  font-weight: var(--font-bold);
+}
+
 /* ===== MODAL STYLES ===== */
 .modal-overlay {
   position: fixed;

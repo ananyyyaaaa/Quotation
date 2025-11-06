@@ -2,6 +2,8 @@ import React, { useState, useEffect, forwardRef, useImperativeHandle } from "rea
 import PopupContainer from "../components/PopupContainer";
 import { usePopupManager } from "../hooks/usePopupManager";
 import "./ProductCustomerSection.css";
+import AddEntityModal from "../components/AddEntityModal";
+
 
 const ProductCustomerSection = forwardRef((props, ref) => {
   const { readOnly } = props;
@@ -19,17 +21,15 @@ const ProductCustomerSection = forwardRef((props, ref) => {
   ]);
 
   const [quotationType, setQuotationType] = useState("Original");
-  const [reference, setReference] = useState("");
-  const [designer, setDesigner] = useState("");
-  const [manager, setManager] = useState("");
+  const [references, setReferences] = useState([]);
+  const [selectedReference, setSelectedReference] = useState("");
+  const [selectedDesigner, setSelectedDesigner] = useState("");
+  const [selectedManager, setSelectedManager] = useState("");
   const [category, setCategory] = useState("Modular Kitchen");
-
   const [customers, setCustomers] = useState([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState(""); // use _id as identifier
-
   const [designers, setDesigners] = useState([]);
   const [managers, setManagers] = useState([]);
-
   const [gst, setGst] = useState("");
   const [mobile, setMobile] = useState("");
   const [building, setBuilding] = useState("");
@@ -38,8 +38,10 @@ const ProductCustomerSection = forwardRef((props, ref) => {
   const [address, setAddress] = useState("");
   const [remarks, setRemarks] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(products[0]); // default first product
-
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddDesignerModal, setShowAddDesignerModal] = useState(false);
+  const [showAddManagerModal, setShowAddManagerModal] = useState(false);
+  const [showAddReferenceModal, setShowAddReferenceModal] = useState(false);
   const [newCustomer, setNewCustomer] = useState({
     name: "",
     gstNumber: "",
@@ -63,6 +65,11 @@ const ProductCustomerSection = forwardRef((props, ref) => {
       .then(res => res.json())
       .then(data => setManagers(Array.isArray(data) ? data : []))
       .catch(console.error);
+    
+    fetch(`${API_BASE_URL}/api/references`, { headers: authHeader })
+    .then(res => res.json())
+    .then(data => setReferences(Array.isArray(data) ? data : []))
+    .catch(console.error);
 
     fetch(`${API_BASE_URL}/api/customers`, { headers: authHeader })
       .then(res => res.json())
@@ -194,9 +201,9 @@ const ProductCustomerSection = forwardRef((props, ref) => {
     setCategory(quotationData.category || "");
     setSelectedProduct(quotationData.product || products[0]);
     setQuotationType(quotationData.quotationType || "");
-    setReference(quotationData.reference || "");
-    setDesigner(quotationData.designer || "");
-    setManager(quotationData.manager || "");
+    setSelectedReference(quotationData.reference || "");
+    setSelectedDesigner(quotationData.designer || "");
+    setSelectedManager(quotationData.manager || "");
 
     if (quotationData.shippingAddress) {
       setGst(quotationData.shippingAddress.gstNumber || "");
@@ -225,9 +232,9 @@ const ProductCustomerSection = forwardRef((props, ref) => {
         category,
         product: selectedProduct,
         quotationType,
-        reference,
-        designer,
-        manager,
+        reference: selectedReference,
+        designer: selectedDesigner,
+        manager: selectedManager,
         shippingAddress: {
           gstNumber: gst,
           building,
@@ -284,27 +291,39 @@ const ProductCustomerSection = forwardRef((props, ref) => {
           </select>
         </div>
         <div className="form-group">
-          <label>Reference</label>
-          <select value={reference} onChange={e => setReference(e.target.value)} disabled={readOnly}>
-            <option value="">Select Reference</option>
-            <option>Mr. Reference 1</option>
-          </select>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <select value={selectedReference} onChange={e => setSelectedReference(e.target.value)} disabled={readOnly}>
+              <option value="">Select Reference</option>
+              {references.map(d => (
+                <option key={d._id} value={d.name}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+            {!readOnly && <button type="button" className="add-entity-btn" onClick={() => setShowAddReferenceModal(true)}>Add Reference</button>}
+          </div>
         </div>
         <div className="form-group">
-          <label>Designer</label>
-          <select value={designer} onChange={e => setDesigner(e.target.value)} disabled={readOnly}>
-            <option value="">Select Designer</option>
-            <option>Mr. Designer 1</option>
-            {designers.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}
-          </select>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <select value={selectedDesigner} onChange={e => setSelectedDesigner(e.target.value)} disabled={readOnly}>
+              <option value="">Select Designer</option>
+              {designers.map(d => (
+                <option key={d._id} value={d.name}>{d.name}</option>
+              ))}
+            </select>
+            {!readOnly && <button type="button" className="add-entity-btn" onClick={() => setShowAddDesignerModal(true)}>Add Designer</button>}
+          </div>
         </div>
         <div className="form-group">
-          <label>Manager</label>
-          <select value={manager} onChange={e => setManager(e.target.value)} disabled={readOnly}>
-            <option value="">Select Manager</option>
-            <option>Mr. Manager 1</option>
-            {managers.map(m => <option key={m._id} value={m.name}>{m.name}</option>)}
-          </select>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <select value={selectedManager} onChange={e => setSelectedManager(e.target.value)} disabled={readOnly}>
+              <option value="">Select Manager</option>
+              {managers.map(d => (
+                <option key={d._id} value={d.name}>{d.name}</option>
+              ))}
+            </select>
+            {!readOnly && <button type="button" className="add-entity-btn" onClick={() => setShowAddManagerModal(true)}>Add Manager</button>}
+          </div>
         </div>
       </div>
 
@@ -370,6 +389,41 @@ const ProductCustomerSection = forwardRef((props, ref) => {
           </div>
         </div>
       )}
+      {showAddDesignerModal && (
+      <AddEntityModal
+        type="designer"
+        existingData={designers}
+        onClose={() => setShowAddDesignerModal(false)}
+        onSuccess={(data) => setDesigners(prev => [...prev, data])}
+        showError={showError}
+        showWarning={showWarning}
+        showSuccess={showSuccess}
+      />
+    )}
+
+    {showAddManagerModal && (
+      <AddEntityModal
+        type="manager"
+        existingData={managers}
+        onClose={() => setShowAddManagerModal(false)}
+        onSuccess={(data) => setManagers(prev => [...prev, data])}
+        showError={showError}
+        showWarning={showWarning}
+        showSuccess={showSuccess}
+      />
+    )}
+
+    {showAddReferenceModal && (
+      <AddEntityModal
+        type="reference"
+        existingData={references}
+        onClose={() => setShowAddReferenceModal(false)}
+        onSuccess={(data) => setReferences(prev => [...prev, data])}
+        showError={showError}
+        showWarning={showWarning}
+        showSuccess={showSuccess}
+      />
+    )}
     </div>
   );
 });

@@ -2,9 +2,11 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
-
 import quotationRoutes from "./routes/quotationRoutes.js";
 import customerRoutes from "./routes/customerRoutes.js";
+import designerRoutes from "./routes/designerRoutes.js";
+import referenceRoutes from "./routes/referenceRoutes.js";
+import managerRoutes from "./routes/managerRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
 import { ensureAuth } from "./controllers/authController.js";
@@ -16,8 +18,8 @@ const app = express();
 
 // Middleware
 app.use(cors(
-    // {origin: process.env.FRONTEND_URL,
-    // credentials: true,}
+    {origin: process.env.FRONTEND_URL,
+    credentials: true,}
   )
 );
 app.use(express.json({ limit: "10mb" }));
@@ -52,6 +54,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/quotations", ensureAuth, quotationRoutes);
 app.use("/api/customers", ensureAuth, customerRoutes);
 app.use("/api/settings", ensureAuth, settingsRoutes);
+app.use("/api/designers", ensureAuth, designerRoutes);
+app.use("/api/references", ensureAuth, referenceRoutes);
+app.use("/api/managers", ensureAuth, managerRoutes);
 
 // Test route
 app.get("/", (req, res) => {

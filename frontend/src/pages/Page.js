@@ -101,7 +101,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
         
         <div className="address-container">
           <b>
-            <h3>{settings?.legalName || "Manan Resources"}</h3>
+            <p>{settings?.legalName || "Manan Resources"}</p>
             <p>{settings?.address || "Showroom: 297-A First Floor, Above Honda Showroom\nModel Town, Ambala City, 134003, Haryana, India"}</p>
             {settings?.email || <p>Email: info.mananresources@gmail.com</p>}
             {settings?.phone || <p>Contact: +91-8146428915</p>}
@@ -151,6 +151,8 @@ const Page = forwardRef(({ data = {} }, ref) => {
         <p>For clarifications or queries, please feel free to contact your relationship manager at the details above.</p>
         <p>This proposal is valid for <b>15</b> days, i.e., till <b>{validTill}</b>.</p>
       </section>
+
+      <p>Remarks: {customerData.remarks} || {}</p>
       
 
       {/* BLOCKS SECTION */}
