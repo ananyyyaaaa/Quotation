@@ -25,7 +25,7 @@ const ProductCustomerSection = forwardRef((props, ref) => {
   const [category, setCategory] = useState("Modular Kitchen");
 
   const [customers, setCustomers] = useState([]);
-  const [customerMobile, setCustomerMobile] = useState(""); // mobileNumber as ID
+  const [selectedCustomerId, setSelectedCustomerId] = useState(""); // use _id as identifier
 
   const [designers, setDesigners] = useState([]);
   const [managers, setManagers] = useState([]);
@@ -73,20 +73,31 @@ const ProductCustomerSection = forwardRef((props, ref) => {
       });
   }, []);
 
+  // Helper functions
+  const fillFromCustomer = (customer) => {
+    setGst(customer.gstNumber || "");
+    setBuilding(customer.building || "");
+    setFloor(customer.floor || "");
+    setLandmark(customer.nearestLandmark || "");
+    setAddress(customer.address || "");
+    setMobile(customer.mobileNumber || "");
+  };
+
+  const clearFields = () => {
+    setGst(""); setBuilding(""); setFloor(""); setLandmark(""); setAddress(""); setMobile("");
+  };
+
   // Auto-fill when a customer is selected
   useEffect(() => {
-    const selected = customers.find(c => c.mobileNumber === customerMobile);
-    if (selected) {
-      setGst(selected.gstNumber || "");
-      setBuilding(selected.building || "");
-      setFloor(selected.floor || "");
-      setLandmark(selected.nearestLandmark || "");
-      setAddress(selected.address || "");
-      setMobile(selected.mobileNumber || "");
+    if (selectedCustomerId) {
+      const selected = customers.find(c => c._id === selectedCustomerId);
+      if (selected) {
+        fillFromCustomer(selected);
+      }
     } else {
-      setGst(""); setBuilding(""); setFloor(""); setLandmark(""); setAddress(""); setMobile("");
+      clearFields();
     }
-  }, [customerMobile, customers]);
+  }, [selectedCustomerId, customers]);
 
   // GST input handler (max 15 alphanumeric)
   const handleGstChange = e => {
@@ -115,28 +126,33 @@ const ProductCustomerSection = forwardRef((props, ref) => {
     return;
   }
 
-  // Validate mobile if provided
-  // Validate mobile if provided
-if (
-  mobileNumber &&
-  mobileNumber.trim() !== "" &&
-  !/^\d{10}$/.test(mobileNumber.trim())
-) {
-  showError("Mobile number must be 10 digits if provided");
-  return;
-}
-
-// Check duplicate only if mobile number is provided
-if (mobileNumber && mobileNumber.trim() !== "") {
-  const duplicate = customers.find(
-    c => c.mobileNumber && c.mobileNumber === mobileNumber.trim()
-  );
-  if (duplicate) {
-    showWarning("Customer with this mobile number already exists");
+  if (
+    mobileNumber &&
+    mobileNumber.trim() !== "" &&
+    !/^\d{10}$/.test(mobileNumber.trim())
+  ) {
+    showError("Mobile number must be 10 digits if provided");
     return;
   }
-}
 
+  if (mobileNumber && mobileNumber.trim() !== "") {
+    const duplicate = customers.find(
+      c => c.mobileNumber && c.mobileNumber === mobileNumber.trim()
+    );
+    if (duplicate) {
+      showWarning("Customer with this mobile number already exists");
+      return;
+    }
+  } else {
+   
+    const duplicate = customers.find(
+      c => !c.mobileNumber && c.name.trim().toLowerCase() === name.trim().toLowerCase()
+    );
+    if (duplicate) {
+      showWarning("Customer with this name already exists (no mobile provided)");
+      return;
+    }
+  }
 
     try {
       const API_BASE_URL=process.env.REACT_APP_BACKEND_URL;
@@ -157,7 +173,7 @@ if (mobileNumber && mobileNumber.trim() !== "") {
       }
 
       setCustomers(prev => [...prev, data]);
-      setCustomerMobile(data.mobileNumber); // auto-select newly added
+      setSelectedCustomerId(data._id); // auto-select newly added
       setGst(data.gstNumber || "");
       setBuilding(data.building || "");
       setFloor(data.floor || "");
@@ -181,7 +197,7 @@ if (mobileNumber && mobileNumber.trim() !== "") {
     setReference(quotationData.reference || "");
     setDesigner(quotationData.designer || "");
     setManager(quotationData.manager || "");
-    
+
     if (quotationData.shippingAddress) {
       setGst(quotationData.shippingAddress.gstNumber || "");
       setBuilding(quotationData.shippingAddress.building || "");
@@ -191,30 +207,18 @@ if (mobileNumber && mobileNumber.trim() !== "") {
       setMobile(quotationData.shippingAddress.mobileNumber || "");
     }
     setRemarks(quotationData.remarks || "");
-    
-    // Find customer by mobile number and select them
-    // quotationData.customer could be either:
-    // 1. A populated customer object {_id, name, mobileNumber, ...}
-    // 2. Just the _id string
-    // 3. Or an object with _id property
-    const customerId = quotationData.customer?._id || quotationData.customer;
-    const customerMobileNumber = quotationData.customer?.mobileNumber;
-    
-    if (customerMobileNumber && customerMobileNumber.trim() !== "") {
-  setCustomerMobile(customerMobileNumber.trim());
-} else if (customerId && customers.length > 0) {
-  const foundCustomer = customers.find(c => c._id === customerId);
-  if (foundCustomer && foundCustomer.mobileNumber) {
-    setCustomerMobile(foundCustomer.mobileNumber.trim());
-  }
-}
 
+    // Set selected customer by _id
+    const customerId = quotationData.customer?._id || quotationData.customer;
+    if (customerId) {
+      setSelectedCustomerId(customerId);
+    }
   };
 
   // Expose customer data to parent
   useImperativeHandle(ref, () => ({
     getCustomerData: () => {
-      const selected = customers.find(c => c.mobileNumber === customerMobile) || {};
+      const selected = customers.find(c => c._id === selectedCustomerId) || {};
       const data = {
         customer: selected._id || null,
         customerName: selected.name || "",
@@ -244,12 +248,12 @@ if (mobileNumber && mobileNumber.trim() !== "") {
       };
       console.log("ProductCustomerSection returning:", data);
       console.log("Selected customer:", selected);
-      console.log("Customer mobile:", customerMobile);
+      console.log("Selected customer ID:", selectedCustomerId);
       console.log("All customers:", customers);
       return data;
     },
     loadData,
-    _id: customers.find(c => c.mobileNumber === customerMobile)?._id,
+    _id: selectedCustomerId,
   }));
 
   return (
@@ -310,11 +314,11 @@ if (mobileNumber && mobileNumber.trim() !== "") {
         <div className="form-group customer-row">
           <label>Select Customer</label>
           <div style={{ display: "flex", gap: "10px" }}>
-            <select value={customerMobile} onChange={e => setCustomerMobile(e.target.value)} disabled={readOnly}>
+            <select value={selectedCustomerId} onChange={e => setSelectedCustomerId(e.target.value)} disabled={readOnly}>
               <option value="">Select Customer</option>
               {customers.map(c => (
-                <option key={c.mobileNumber} value={c.mobileNumber}>
-                  {c.name} ({c.mobileNumber})
+                <option key={c._id} value={c._id}>
+                  {c.name} ({c.mobileNumber || 'No Mobile'})
                 </option>
               ))}
             </select>

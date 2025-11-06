@@ -10,12 +10,29 @@ const customerSchema = new mongoose.Schema(
     address: { type: String },
     mobileNumber: {
       type: String,
-      sparce: true,
-      unique: true, // ensures backend duplication prevention
       trim: true,
     },
   },
   { timestamps: true }
 );
+
+// Partial unique index for mobileNumber when provided
+customerSchema.index(
+  { mobileNumber: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { mobileNumber: { $ne: null } },
+  }
+);
+
+// ✅ Fixed: Partial unique index for name when mobileNumber is null
+customerSchema.index(
+  { name: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { mobileNumber: { $eq: null } },
+  }
+);
+
 
 export default mongoose.model("Customer", customerSchema);

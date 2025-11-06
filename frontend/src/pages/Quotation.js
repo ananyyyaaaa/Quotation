@@ -338,17 +338,18 @@
           throw new Error(data.error || data.message || "Failed to save quotation");
         }
 
-        // Update state with returned quotation number
-        const savedQuotationNumber = data.quotation?.quotationNumber || data.quotationNumber || quotationNumber;
-        setQuotationNumber(savedQuotationNumber);
-        
+        // Update state with returned quotation data
+        const savedQuotation = data.quotation;
+        setQuotationNumber(savedQuotation.quotationNumber);
+        setSpecialDiscount(savedQuotation.specialDiscount || 0);
+
         // Get category from customerRef to ensure it's included
         const currentCustomerData = customerRef.current?.getCustomerData?.() || {};
         const categoryFromRef = currentCustomerData.category || customerData.category || "";
-        
+
         // Set print data with correct structure for Page component
         setPrintData({
-          quotationNumber: savedQuotationNumber,
+          quotationNumber: savedQuotation.quotationNumber,
           date,
           customerData: {
             ...customerData,
@@ -356,8 +357,8 @@
           },
           blocksData,
           settings: settings || null,
-          specialDiscount: Number(specialDiscount) || 0,
-          finalProjectValue: Math.max(0, totalProjectValue - Number(specialDiscount || 0)),
+          specialDiscount: savedQuotation.specialDiscount || 0,
+          finalProjectValue: Math.max(0, totalProjectValue - Number(savedQuotation.specialDiscount || 0)),
         });
 
         showSuccess(id ? "Quotation updated successfully!" : "Quotation saved successfully!");

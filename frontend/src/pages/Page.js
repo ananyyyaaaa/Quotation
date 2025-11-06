@@ -401,7 +401,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
           <table style={{ margin: "0 auto" }}>
             <tbody>
               <tr>
-                <td>WoodWork Value</td>
+                <td>WoodWork Value (A)</td>
                 <td>₹ {woodworkValue.toLocaleString()}</td>
               </tr>
               <tr>

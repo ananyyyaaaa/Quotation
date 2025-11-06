@@ -16,16 +16,13 @@ export const addCustomer = async (req, res) => {
     let { name, gstNumber, building, floor, nearestLandmark, address, mobileNumber } = req.body;
 
     // ✅ Trim values safely
-    if (mobileNumber) mobileNumber = mobileNumber.trim();
+    name = name.trim();
+    mobileNumber = mobileNumber ? mobileNumber.trim() : null;
+    if (mobileNumber === "") mobileNumber = null;
 
     // ✅ Allow empty mobile number, validate only if provided
     if (mobileNumber && !/^\d{10}$/.test(mobileNumber)) {
       return res.status(400).json({ message: "Mobile number must be 10 digits if provided" });
-    }
-
-    // ✅ Set null if empty
-    if (!mobileNumber) {
-      mobileNumber = null;
     }
 
     // ✅ Validate GST (optional but must be 15 alphanumeric)
@@ -33,14 +30,29 @@ export const addCustomer = async (req, res) => {
       return res.status(400).json({ message: "GST number must be 15 alphanumeric characters" });
     }
 
-    // ✅ Duplicate mobile check (only if provided)
+    // ✅ Custom duplicate check logic
+    let existingCustomer;
+
     if (mobileNumber) {
-      const existing = await Customer.findOne({ mobileNumber });
-      if (existing) {
-        return res.status(400).json({ message: "Customer with this mobile number already exists" });
+      // Check uniqueness by mobile number
+      existingCustomer = await Customer.findOne({ mobileNumber });
+      if (existingCustomer) {
+        return res.status(400).json({ message: "Mobile number already exists" });
+      }
+    } else {
+      // Check uniqueness by name if mobile not provided
+      existingCustomer = await Customer.findOne({
+        name,
+        $or: [{ mobileNumber: "" }, { mobileNumber: null }],
+      });
+      if (existingCustomer) {
+        return res
+          .status(400)
+          .json({ message: "Customer name already exists (mobile not provided)" });
       }
     }
 
+    // ✅ Create and save new customer
     const newCustomer = new Customer({
       name,
       gstNumber,
@@ -57,7 +69,14 @@ export const addCustomer = async (req, res) => {
     console.error(error);
     // Handle duplicate key error (from unique index)
     if (error.code === 11000) {
-      return res.status(400).json({ message: "Mobile number already exists" });
+      if (error.keyPattern && error.keyPattern.mobileNumber) {
+        return res.status(400).json({ message: "Mobile number already exists" });
+      } else if (error.keyPattern && error.keyPattern.name) {
+        return res
+          .status(400)
+          .json({ message: "Customer name already exists (mobile not provided)" });
+      }
+      return res.status(400).json({ message: "Duplicate entry detected" });
     }
     res.status(500).json({ message: "Server error" });
   }

@@ -1,18 +1,21 @@
-# TODO: Fix Special Discount and Final Project Value Issues
+# TODO: Fix Customer Uniqueness and Auto-Fill
 
-## Backend Changes
-- [x] Add specialDiscount and finalProjectValue fields to Quotation model
-- [x] Update quotationController to handle new fields in create/update operations
+## Issues Identified
+- Frontend select uses mobileNumber as value, but auto-fill depends on selectedCustomerId (not set).
+- Duplicate check in frontend only validates mobile if provided, but not name if mobile blank.
+- Auto-fill not triggering on customer selection.
+- getCustomerData finds customer by mobile, but should use selectedCustomerId.
 
-## Frontend Changes
-- [x] Modify Quotation.js to save/load specialDiscount and finalProjectValue
-- [x] Update Quotation.js to pass these values to printData for PDF generation
-- [x] Update Page.js to use passed values instead of local state
-- [x] Remove editable inputs for special discount in Page.js
-- [x] Improve Page.css spacing and layout
-- [x] Remove unused useState import from Page.js
+## Plan
+1. Change customer select to use _id as value and set selectedCustomerId on change.
+2. Update auto-fill useEffect to trigger on selectedCustomerId.
+3. Enhance duplicate check in handleAddCustomer: check mobile unique if provided, name unique if not.
+4. Update loadData to set selectedCustomerId based on quotation data.
+5. Update getCustomerData to use selectedCustomerId for finding customer.
+6. Test the changes.
 
-## Testing
-- [ ] Test saving quotation with special discount
-- [ ] Test loading quotation in view mode
-- [ ] Test PDF generation with correct values
+## Steps
+- [x] Edit backend/controllers/customerController.js: Fix mobileNumber trimming and null handling.
+- [x] Edit ProductCustomerSection.js: Add helper functions for fill and clear.
+- [x] Edit ProductCustomerSection.js: Add auto-fill useEffect on selectedCustomerId.
+- [x] Test the functionality.
