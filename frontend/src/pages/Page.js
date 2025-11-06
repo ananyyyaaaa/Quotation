@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from "react";
+import React, { forwardRef } from "react";
 import "./Page.css";
 import logo from "./logo.png";
 
@@ -26,9 +26,9 @@ const Page = forwardRef(({ data = {} }, ref) => {
   const validTill = `${validTillDate.getDate()} ${months[validTillDate.getMonth()]} ${validTillDate.getFullYear()}`;
   const { shippingAddress = {}, billingAddress = {} } = customerData;
 
-  // ===== STATES =====
-  const [specialDiscount, setSpecialDiscount] = useState(data.specialDiscount || 0);
-  const [gstPercent, setGstPercent] = useState(data.gstPercent || 0);
+  // ===== VALUES FROM PROPS =====
+  const specialDiscount = data.specialDiscount || 0;
+  const gstPercent = data.gstPercent || 0;
 
   // ===== CALCULATIONS =====
   let woodworkValue = 0;
@@ -59,7 +59,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
   const gstAmount = (grossValue * gstPercent) / 100;
   const woodworkTotal = grossValue + gstAmount;
   const totalProjectValue = woodworkTotal + fittingsValue + addonValue + appliancesValue;
-  const finalTotal = data.finalProjectValue || Math.max(0, totalProjectValue - Number(specialDiscount || 0));
+  const finalTotal = Math.max(0, totalProjectValue - Number(specialDiscount || 0));
 
 
   // ===== Number to Words =====
@@ -101,7 +101,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
         
         <div className="address-container">
           <b>
-            <p>{settings?.legalName || "Manan Resources"}</p>
+            <h3>{settings?.legalName || "Manan Resources"}</h3>
             <p>{settings?.address || "Showroom: 297-A First Floor, Above Honda Showroom\nModel Town, Ambala City, 134003, Haryana, India"}</p>
             {settings?.email || <p>Email: info.mananresources@gmail.com</p>}
             {settings?.phone || <p>Contact: +91-8146428915</p>}
@@ -458,15 +458,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
               </tr>
               <tr>
                 <td>Special Discount</td>
-                <td>
-                  <input
-                    type="number"
-                    value={specialDiscount}
-                    onChange={(e) => setSpecialDiscount(e.target.value)}
-                    style={{ width: "80%", textAlign: "center" }}
-                  />
-
-                </td>
+                <td>₹ {specialDiscount.toLocaleString()}</td>
               </tr>
               <tr>
                 <td><b>Final Project Value</b></td>

@@ -87,6 +87,8 @@ export const createQuotation = async (req, res) => {
       shippingAddress: shippingAddress || {},
       remarks: remarks || "",
       blocks: blocks || [],
+      specialDiscount: req.body.specialDiscount || 0,
+      finalProjectValue: req.body.finalProjectValue || 0,
     });
 
     console.log("Quotation object before save:", quotation);

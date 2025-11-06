@@ -24,6 +24,8 @@ const quotationSchema = new mongoose.Schema(
     },
     remarks: String,
     blocks: Array,
+    specialDiscount: { type: Number, default: 0 },
+    finalProjectValue: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

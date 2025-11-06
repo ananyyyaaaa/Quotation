@@ -137,6 +137,7 @@
         setStatus(quotation.status);
         setBusinessUnit(quotation.businessUnit);
         setSpecialDiscount(quotation.specialDiscount || 0);
+        // finalProjectValue is handled in printData below
 
 
         // Load customer and blocks data
@@ -180,7 +181,7 @@
             blocksData: quotation.blocks || [],
             settings: settings || null,
             specialDiscount: quotation.specialDiscount || 0,
-            finalProjectValue: Math.max(0, totalProjectValue - Number(specialDiscount || 0)),
+            finalProjectValue: quotation.finalProjectValue || Math.max(0, totalProjectValue - Number(quotation.specialDiscount || 0)),
           });
         }, 100);
 
@@ -355,6 +356,8 @@
           },
           blocksData,
           settings: settings || null,
+          specialDiscount: Number(specialDiscount) || 0,
+          finalProjectValue: Math.max(0, totalProjectValue - Number(specialDiscount || 0)),
         });
 
         showSuccess(id ? "Quotation updated successfully!" : "Quotation saved successfully!");
@@ -742,13 +745,17 @@
                     <tr>
                       <td>Special Discount</td>
                       <td>
-                        <input
-                          type="number"
-                          value={specialDiscount}
-                          onChange={(e) => setSpecialDiscount(e.target.value)}
-                          style={{ width: "80%", textAlign: "center" }}
-                          placeholder="0"
-                        />
+                        {isViewMode ? (
+                          <span>₹ {specialDiscount.toLocaleString()}</span>
+                        ) : (
+                          <input
+                            type="number"
+                            value={specialDiscount}
+                            onChange={(e) => setSpecialDiscount(e.target.value)}
+                            style={{ width: "80%", textAlign: "center" }}
+                            placeholder="0"
+                          />
+                        )}
                       </td>
                     </tr>
                     <tr>
