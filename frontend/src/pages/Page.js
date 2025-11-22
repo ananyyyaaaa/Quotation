@@ -101,7 +101,7 @@ const Page = forwardRef(({ data = {} }, ref) => {
         
         <div className="address-container">
           <b>
-            <p>{settings?.legalName || "Manan Resources"}</p>
+            <p>{settings?.legalName || "MANAN RESOURCES"}</p>
             <p>{settings?.address || "Showroom: 297-A First Floor, Above Honda Showroom\nModel Town, Ambala City, 134003, Haryana, India"}</p>
             {settings?.email || <p>Email: info.mananresources@gmail.com</p>}
             {settings?.phone || <p>Contact: +91-8146428915</p>}
@@ -364,25 +364,24 @@ const Page = forwardRef(({ data = {} }, ref) => {
           <footer className="terms-box" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', pageBreakAfter: 'avoid', breakAfter: 'avoid' }}>
             <h4>Terms and Conditions</h4>
             <div className="terms-content" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', fontSize: '10px', lineHeight: '1.3', margin: 0 }}>
-            Terms and Conditions:
 
-              1. All Purchase Order, Cheque, and Draft to be made in the Favour of "Manan Resources".<br/>
+              1. All Purchase Order, Cheque, and Draft to be made in the favour of <b>"Manan Resources".</b><br/>
 
               2. 60% advance at the time of placing the order, 35% payment before dispatch of goods, 5% after installation.<br/>
 
-              3. Delivery will be within 4 to 6 weeks days after confirmation of the order and final measurement done, with advance, subject to availability of raw material.<br/>
+              3. Delivery will be within <b>4 to 6 week days</b> after confirmation of the order and final measurement done, with advance, subject to availability of raw material.<br/>
 
               4. Delivery is subject to realization of cheque/DD or Cash.<br/>
 
               5. Goods once sold can't be returned or exchanged.<br/>
 
-              6. Cancellation of confirmed order is not allowed and advance is non-refundabile.<br/>
+              6. Cancellation of confirmed order is not allowed and advance is non-refundable.<br/>
 
               7. For delivery on or above five floors, the service lift shall have to be organized by the client.<br/>
 
-              8. The Sigliding part and Glass is not covered under any kind of warranty.<br/>
+              8. The Lighting part and Glass is not covered under any kind of warranty.<br/>
 
-              5. Any paper regarding transportation, if required, to be prowded by the client.<br/>
+              9. Any paper regarding transportation, if required, to be provided by the client.<br/>
 
               10. Taxes and transportation are extra as Applicable.<br/>
 

@@ -40,7 +40,8 @@
 }
 
 .address-container {
-  text-align: right;
+  margin-left: 20px;
+  text-align: left;
   font-size: 12px;
   line-height: 1.6;
   margin-top: 10px;
