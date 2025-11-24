@@ -289,117 +289,117 @@ const Page = forwardRef(({ data = {} }, ref) => {
         )}
       </section>
 
-      {/* NOTES & TERMS + RIGHT BILL TABLE */}
-      <section className="notes-and-terms-section" style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
-        <div className="notes-terms-left" style={{ flex: 1, pageBreakInside: "avoid" }}>
-          <div className="special-notes-box">
-            <h4>Special Notes</h4>
-            {(() => {
-              const categoryValue = customerData.category || "";
-              const cat = String(categoryValue).toLowerCase().trim();
-              console.log("🔍 Special Notes - Category check:", {
-                original: categoryValue,
-                lowercased: cat,
-                includesModular: cat.includes("modular"),
-                includesKitchen: cat.includes("kitchen"),
-                exactMatch: categoryValue === "Modular Kitchen",
-                fullCustomerData: customerData
-              });
-              
-              // Always prioritize category-specific notes if category is set
-              // Check for "modular kitchen" - both words together or separately
-              // More explicit checks to ensure Modular Kitchen is detected
-              const isModularKitchen = cat === "modular kitchen" || 
-                                      cat.includes("modular kitchen") || 
-                                      (cat.includes("modular") && cat.includes("kitchen")) ||
-                                      categoryValue === "Modular Kitchen" ||
-                                      categoryValue === "modular kitchen";
-              
-              if (isModularKitchen || cat.includes("kitchen")) {
-                return (
-                  <p style={{ whiteSpace: "pre-line", margin: 0 }}>
-                    1. All civil, Plumbing & Electrical Work will be done by client him/herself.<br/>
-                  </p>
-                );
-              } else if (cat.includes("wardrobe")) {
-                return (
-                  <p style={{ whiteSpace: "pre-line", margin: 0 }}>
-                    1 soft close drawer is included in 35 square feet area (For extra drawer Rs 4200 will be charged).<br/>
+      {/* SPECIAL NOTES SECTION */}
+      <section className="special-notes-section">
+        <div className="special-notes-box">
+          <h4>Special Notes</h4>
+          {(() => {
+            const categoryValue = customerData.category || "";
+            const cat = String(categoryValue).toLowerCase().trim();
+            console.log("🔍 Special Notes - Category check:", {
+              original: categoryValue,
+              lowercased: cat,
+              includesModular: cat.includes("modular"),
+              includesKitchen: cat.includes("kitchen"),
+              exactMatch: categoryValue === "Modular Kitchen",
+              fullCustomerData: customerData
+            });
+            
+            // Always prioritize category-specific notes if category is set
+            // Check for "modular kitchen" - both words together or separately
+            // More explicit checks to ensure Modular Kitchen is detected
+            const isModularKitchen = cat === "modular kitchen" || 
+                                    cat.includes("modular kitchen") || 
+                                    (cat.includes("modular") && cat.includes("kitchen")) ||
+                                    categoryValue === "Modular Kitchen" ||
+                                    categoryValue === "modular kitchen";
+            
+            if (isModularKitchen || cat.includes("kitchen")) {
+              return (
+                <p style={{ whiteSpace: "pre-line", margin: 0 }}>
+                  1. All civil, Plumbing & Electrical Work will be done by client him/herself.<br/>
+                </p>
+              );
+            } else if (cat.includes("wardrobe")) {
+              return (
+                <p style={{ whiteSpace: "pre-line", margin: 0 }}>
+                  1 soft close drawer is included in 35 square feet area (For extra drawer Rs 4200 will be charged).<br/>
 
-                    2 No any accessory is included in above cost and Accessories(if required) will be charged Rs. 7500/onward.<br/>
+                  2 No any accessory is included in above cost and Accessories(if required) will be charged Rs. 7500/onward.<br/>
 
-                    3 Sensor light will be charged @ Rs 7500/-each.<br/>
+                  3 Sensor light will be charged @ Rs 7500/-each.<br/>
 
-                    4 There is no any kind of warranty of lights.<br/>
+                  4 There is no any kind of warranty of lights.<br/>
 
-                    5 Special Hanging rod (Imported) Rs. 3800/-will be charged.<br/>
+                  5 Special Hanging rod (Imported) Rs. 3800/-will be charged.<br/>
 
-                    6 Hinges will be soft close.<br/>
+                  6 Hinges will be soft close.<br/>
 
-                    7 In sliding wardrobe, sliding fitting cost will be extra as per actual.<br/>
+                  7 In sliding wardrobe, sliding fitting cost will be extra as per actual.<br/>
 
-                    8 Fabric, leather & stone will be provided by the client.<br/>
-                  </p>
-                );
-              } else {
-                // Default notes if category is not specified
-                return settings && settings.terms && settings.terms.trim() ? (
-                  <p style={{ whiteSpace: "pre-line", margin: 0 }}>
-                    {settings.terms.split('\n').map((line, index) => (
-                      <React.Fragment key={index}>
-                        {line}
-                        <br/>
-                      </React.Fragment>
-                    ))}
-                  </p>
-                ) : (
-                  <p style={{ margin: 0 }}>
-                    ""
-                  </p>
-                );
-              }
-            })()}
+                  8 Fabric, leather & stone will be provided by the client.<br/>
+                </p>
+              );
+            } else {
+              // Default notes if category is not specified
+              return settings && settings.terms && settings.terms.trim() ? (
+                <p style={{ whiteSpace: "pre-line", margin: 0 }}>
+                  {settings.terms.split('\n').map((line, index) => (
+                    <React.Fragment key={index}>
+                      {line}
+                      <br/>
+                    </React.Fragment>
+                  ))}
+                </p>
+              ) : (
+                <p style={{ margin: 0 }}>
+                  ""
+                </p>
+              );
+            }
+          })()}
+        </div>
+      </section>
+
+      {/* TERMS AND CONDITIONS + BILLING SECTION */}
+      <section className="terms-billing-section">
+        <div className="terms-box">
+          <h4>Terms and Conditions</h4>
+          <div className="terms-content">
+            1. All Purchase Order, Cheque, and Draft to be made in the favour of <b>"Manan Resources".</b><br/>
+
+            2. 60% advance at the time of placing the order, 35% payment before dispatch of goods, 5% after installation.<br/>
+
+            3. Delivery will be within <b>4 to 6 week days</b> after confirmation of the order and final measurement done, with advance, subject to availability of raw material.<br/>
+
+            4. Delivery is subject to realization of cheque/DD or Cash.<br/>
+
+            5. Goods once sold can't be returned or exchanged.<br/>
+
+            6. Cancellation of confirmed order is not allowed and advance is non-refundable.<br/>
+
+            7. For delivery on or above five floors, the service lift shall have to be organized by the client.<br/>
+
+            8. The Lighting part and Glass is not covered under any kind of warranty.<br/>
+
+            9. Any paper regarding transportation, if required, to be provided by the client.<br/>
+
+            10. Taxes and transportation are extra as Applicable.<br/>
+
+            11. Prices are valid for 15 days.<br/>
+
+            12. All disputes will be subjected to Ambala Junsdiction only.<br/>
+
+            13. There will be no guarantee of broken tems.<br/>
+
+            14. There will be 5 ears of warranty on all products.<br/>
+
+            15. 2 Visits are free after that chargeable.<br/>
           </div>
-
-          <footer className="terms-box" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', pageBreakAfter: 'avoid', breakAfter: 'avoid' }}>
-            <h4>Terms and Conditions</h4>
-            <div className="terms-content" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', fontSize: '10px', lineHeight: '1.3', margin: 0 }}>
-
-              1. All Purchase Order, Cheque, and Draft to be made in the favour of <b>"Manan Resources".</b><br/>
-
-              2. 60% advance at the time of placing the order, 35% payment before dispatch of goods, 5% after installation.<br/>
-
-              3. Delivery will be within <b>4 to 6 week days</b> after confirmation of the order and final measurement done, with advance, subject to availability of raw material.<br/>
-
-              4. Delivery is subject to realization of cheque/DD or Cash.<br/>
-
-              5. Goods once sold can't be returned or exchanged.<br/>
-
-              6. Cancellation of confirmed order is not allowed and advance is non-refundable.<br/>
-
-              7. For delivery on or above five floors, the service lift shall have to be organized by the client.<br/>
-
-              8. The Lighting part and Glass is not covered under any kind of warranty.<br/>
-
-              9. Any paper regarding transportation, if required, to be provided by the client.<br/>
-
-              10. Taxes and transportation are extra as Applicable.<br/>
-
-              11. Prices are valid for 15 days.<br/>
-
-              12. All disputes will be subjected to Ambala Junsdiction only.<br/>
-
-              13. There will be no guarantee of broken tems.<br/>
-
-              14. There will be 5 ears of warranty on all products.<br/>
-
-              15. 2 Visits are free after that chargeable.<br/>
-            </div>
-          </footer>
         </div>
 
-        <div className="right-table" style={{ flex: 0.8, pageBreakInside: "avoid", textAlign: "center" }}>
-          <table style={{ margin: "0 auto" }}>
+        <div className="billing-section">
+          <table className="billing-table">
             <tbody>
               <tr>
                 <td>WoodWork Value (A)</td>
@@ -407,38 +407,22 @@ const Page = forwardRef(({ data = {} }, ref) => {
               </tr>
               <tr>
                 <td>Cartage</td>
-                {/* <td>₹ {cartage.toLocaleString()}</td> */}
                 <td>As Per Actual</td>
               </tr>
               <tr>
                 <td>Packing</td>
-                {/* <td>₹ {packing.toLocaleString()}</td> */}
                 <td>As Per Actual</td>
               </tr>
               <tr>
                 <td>Installation</td>
-                {/* <td>₹ {installation.toLocaleString()}</td> */}
                 <td>As Per Actual</td>
               </tr>
               <tr>
                 <td><b>Gross Value</b></td>
                 <td><b>₹ {grossValue.toLocaleString()}</b></td>
               </tr>
-              {/* <tr>
-                <td>GST (%)</td>
-                <td>
-                  <input
-                    type="number"
-                    value={gstPercent}
-                    onChange={(e) => setGstPercent(e.target.value)}
-                    style={{ width: "80%", textAlign: "center" }}
-                    placeholder="0"
-                  />
-                </td>
-              </tr> */}
               <tr>
                 <td>GST Amount</td>
-                {/* <td>₹ {gstAmount.toLocaleString()}</td> */}
                 <td>As Per Actual</td>
               </tr>
               <tr>

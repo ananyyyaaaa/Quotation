@@ -37,6 +37,7 @@
   font-weight: 600;
   text-transform: uppercase;
   color: #000;
+  text-align: center;
 }
 
 .address-container {
@@ -134,6 +135,8 @@
   margin-bottom: 6px;
   page-break-inside: avoid;
   break-inside: avoid;
+  page-break-after: avoid;
+  break-after: avoid;
 }
 
 .block-table {
@@ -144,6 +147,17 @@
   color: #000;
   page-break-inside: auto;
   break-inside: auto;
+  /* Allow table to split across pages */
+  table-layout: auto;
+}
+
+/* Table header should repeat on each page */
+.block-table thead {
+  display: table-header-group;
+}
+
+.block-table tbody {
+  display: table-row-group;
 }
 
 .block-table th,
@@ -155,8 +169,20 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
   hyphens: auto;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+/* Allow rows to break across pages if table is too tall */
+.block-table tr {
   page-break-inside: auto;
   break-inside: auto;
+}
+
+/* Keep header row together */
+.block-table thead tr {
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 .block-table th {
@@ -172,16 +198,120 @@
   border-radius: 8px;
 }
 
-/* ===== NOTES & TERMS SECTION ===== */
-.notes-and-terms-section {
+/* ===== SPECIAL NOTES SECTION ===== */
+.special-notes-section {
+  margin-top: 15px;
+  margin-bottom: 10px;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.special-notes-box {
+  border: 1px solid #000;
+  border-radius: 0px;
+  padding: 12px;
+  background-color: rgba(255, 255, 0, 0.617);
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.special-notes-box h4 {
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #000;
+}
+
+/* ===== TERMS AND BILLING SECTION ===== */
+.terms-billing-section {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
-  margin-top: 35px;
-  margin-bottom: 35px;
+  gap: 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
   page-break-inside: avoid;
   break-inside: avoid;
+}
+
+/* Responsive: Stack vertically if needed */
+@media print {
+  .terms-billing-section {
+    flex-wrap: wrap;
+  }
+  
+  /* If not enough space, stack vertically */
+  .terms-billing-section.vertical-layout {
+    flex-direction: column;
+  }
+  
+  /* If enough space, keep side by side */
+  .terms-billing-section.horizontal-layout {
+    flex-direction: row;
+  }
+}
+
+.terms-box {
+  flex: 1.5;
+  border: 1px solid #000;
+  border-radius: 0px;
+  padding: 12px;
+  background-color: #fff;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  min-width: 0; /* Allow flex shrinking */
+}
+
+.terms-box h4 {
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #000;
+}
+
+.terms-box .terms-content {
+  font-size: 10px;
+  line-height: 1.3;
+  margin: 0;
+  page-break-inside: auto;
+  break-inside: auto;
+}
+
+/* Allow terms content to break across pages if too long */
+.terms-content p,
+.terms-content {
+  orphans: 2;
+  widows: 2;
+}
+
+.billing-section {
+  flex: 1;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  min-width: 0; /* Allow flex shrinking */
+}
+
+.billing-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+  page-break-inside: auto;
+  break-inside: auto;
+}
+
+.billing-table td {
+  border: 1px solid #000;
+  padding: 6px 8px;
+  font-size: 12px;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.billing-table tr {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.billing-table tr:nth-child(even) {
+  background-color: #fff;
 }
 
 /* Category badge under the logo */
@@ -197,36 +327,7 @@
   background: #ffffff;
 }
 
-.notes-terms-left {
-  flex: 2;
-  page-break-inside: avoid;
-  break-inside: avoid;
-  display: flex;
-  flex-direction: column;
-}
-
-.right-table {
-  flex: 1;
-}
-
-.right-table table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 10px;
-}
-
-.right-table td {
-  border: 1px solid #000;
-  padding: 6px 8px;
-  font-size: 12px;
-}
-
-.right-table tr:nth-child(even) {
-  background-color: #fff;
-}
-
-/* ===== SPECIAL NOTES, TERMS, SIGNATURE ===== */
-.special-notes-box, .terms-box, .signature-box {
+.signature-box {
   border: 1px solid #000;
   border-radius: 0px;
   padding: 12px;
@@ -234,32 +335,6 @@
   margin-bottom: 20px;
   page-break-inside: avoid;
   break-inside: avoid;
-}
-
-.special-notes-box h4,
-.terms-box h4 {
-  margin-bottom: 10px;
-  font-size: 13px;
-  color: #000;
-}
-
-.special-notes-box{
-  background-color: rgba(255, 255, 0, 0.617);
-}
-.terms-box p,
-.terms-box .terms-content {
-  page-break-inside: avoid !important;
-  break-inside: avoid !important;
-  orphans: 15;
-  widows: 15;
-  display: block;
-}
-
-.terms-box {
-  max-height: fit-content;
-  overflow: visible;
-  display: flex;
-  flex-direction: column;
 }
 
 .signature-box {
@@ -300,6 +375,11 @@
   word-wrap: break-word;
 }
 
+.footer-table td.sign-col {
+  vertical-align: bottom;
+  padding-bottom: 10px;
+}
+
 /* Heading inside first column */
 .footer-table h1 {
   font-size: 12px;
@@ -313,13 +393,22 @@
 
 /* Signature columns styling */
 .sign-col {
-  height: 80px;
-  text-align: center;
+  height: auto;
+  min-height: 100px;
+  text-align: left;
   vertical-align: bottom;
+  position: relative;
 }
 
 .sign-space {
   height: 60px;
+  min-height: 60px;
+}
+
+.sign-col p {
+  margin: 0;
+  margin-top: 5px;
+  text-align: left;
 }
 
 
@@ -327,11 +416,57 @@
 .header-section,
 .top-section,
 .intro-section,
-.block-container,
-.notes-and-terms-section,
-.footer-table {
+.block-container {
   margin-top: 25px;
   margin-bottom: 25px;
+}
+
+.footer-table {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+/* ===== TABLE SPLITTING HELPERS ===== */
+/* Force table to split if it exceeds page height */
+.block-table {
+  max-height: 100%;
+}
+
+/* Ensure table rows can be split across pages */
+.block-table tbody tr {
+  height: auto;
+  min-height: 20px;
+}
+
+/* Prevent orphaned rows - keep header with at least one data row */
+.block-table thead + tbody tr:first-child {
+  page-break-before: auto;
+}
+
+/* Keep at least 2 rows together when possible */
+.block-table tbody tr {
+  orphans: 2;
+  widows: 2;
+}
+
+/* Ensure block containers can be split across pages */
+.block-container {
+  max-height: none;
+  overflow: visible;
+}
+
+/* ===== RESPONSIVE LAYOUT HELPERS ===== */
+/* Container query simulation - stack sections if needed */
+@media (max-width: 800px) {
+  .terms-billing-section {
+    flex-direction: column;
+  }
+  
+  .terms-box,
+  .billing-section {
+    width: 100%;
+    flex: none;
+  }
 }
 
 /* ===== PRINT STYLES ===== */
@@ -354,14 +489,67 @@
     page-break-after: always;
   }
 
-  .block-container,
-  .notes-and-terms-section,
-  .special-notes-box,
-  .terms-box,
+  /* Allow blocks to break across pages */
+  .block-container {
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  .block-table {
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  /* Keep special notes together */
+  .special-notes-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Terms and billing can break if needed */
+  .terms-billing-section {
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  /* If section is too tall, allow splitting */
+  .terms-box {
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  .billing-section {
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  /* Keep footer together */
   .footer-table {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     page-break-after: auto;
+  }
+
+  /* Table row splitting for long tables */
+  .block-table tbody tr {
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  /* Keep table headers on each page */
+  .block-table thead {
+    display: table-header-group;
+  }
+
+  .block-table thead tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Billing table rows can break if needed */
+  .billing-table tbody tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .page-break {

@@ -507,9 +507,62 @@
       let cursorY = margin;
 
       // Helper: add a canvas to PDF with pagination (splits tall sections)
-      const addCanvasPaginated = (canvasToAdd) => {
+      const addCanvasPaginated = (canvasToAdd, splitInHalf = false) => {
         const sectionImgHeight = (canvasToAdd.height * contentWidth) / canvasToAdd.width;
-        // If entire section taller than page, slice it
+        const remainingSpace = pdfHeight - cursorY - margin;
+        
+        // PRIORITY 1: Check if section doesn't fit and should be split in half
+        if (sectionImgHeight > remainingSpace && splitInHalf && canvasToAdd.height > 50 && remainingSpace > 20) {
+          // Split in half - put first half on current page, second half on next
+          const halfHeight = Math.floor(canvasToAdd.height / 2);
+          
+          // First half - top portion
+          const firstHalfCanvas = document.createElement('canvas');
+          firstHalfCanvas.width = canvasToAdd.width;
+          firstHalfCanvas.height = halfHeight;
+          const firstCtx = firstHalfCanvas.getContext('2d');
+          firstCtx.drawImage(
+            canvasToAdd,
+            0, 0, canvasToAdd.width, halfHeight,
+            0, 0, firstHalfCanvas.width, firstHalfCanvas.height
+          );
+          const firstHalfImg = firstHalfCanvas.toDataURL('image/jpeg', 0.95);
+          const firstHalfHeight = (halfHeight * contentWidth) / canvasToAdd.width;
+          
+          // Add first half to current page (only if it fits)
+          if (firstHalfHeight <= remainingSpace) {
+            pdf.addImage(firstHalfImg, 'JPEG', margin, cursorY, contentWidth, firstHalfHeight);
+            cursorY += firstHalfHeight;
+          } else {
+            // First half also doesn't fit, go to next page
+            pdf.addPage();
+            cursorY = margin;
+            pdf.addImage(firstHalfImg, 'JPEG', margin, cursorY, contentWidth, firstHalfHeight);
+            cursorY += firstHalfHeight;
+          }
+          
+          // Second half - bottom portion (on next page)
+          pdf.addPage();
+          cursorY = margin;
+          
+          const secondHalfCanvas = document.createElement('canvas');
+          secondHalfCanvas.width = canvasToAdd.width;
+          secondHalfCanvas.height = canvasToAdd.height - halfHeight;
+          const secondCtx = secondHalfCanvas.getContext('2d');
+          secondCtx.drawImage(
+            canvasToAdd,
+            0, halfHeight, canvasToAdd.width, canvasToAdd.height - halfHeight,
+            0, 0, secondHalfCanvas.width, secondHalfCanvas.height
+          );
+          const secondHalfImg = secondHalfCanvas.toDataURL('image/jpeg', 0.95);
+          const secondHalfHeight = ((canvasToAdd.height - halfHeight) * contentWidth) / canvasToAdd.width;
+          
+          pdf.addImage(secondHalfImg, 'JPEG', margin, cursorY, contentWidth, secondHalfHeight);
+          cursorY += secondHalfHeight;
+          return;
+        }
+        
+        // PRIORITY 2: If entire section taller than page, slice it
         if (sectionImgHeight > pageUsableHeight) {
           let remainingPx = canvasToAdd.height;
           let sourceY = 0;
@@ -567,13 +620,41 @@
         cursorY += sectionImgHeight;
       };
 
-      // Collect sections in order
-      const sections = [
-        ...element.querySelectorAll(
-          
-          '.header-section, .top-section, .intro-section, .block-container, .notes-and-terms-section, .footer-table'
-        )
-      ];
+      // Collect sections in order: blocks → special notes → terms → billing → footer
+      const sections = [];
+      
+      // 1. Header sections (cannot split)
+      sections.push(...element.querySelectorAll('.header-section, .top-section, .intro-section'));
+      
+      // 2. Blocks (can split)
+      sections.push(...element.querySelectorAll('.block-container'));
+      
+      // 3. Special notes (can split)
+      const specialNotesSection = element.querySelector('.special-notes-section');
+      if (specialNotesSection) {
+        sections.push(specialNotesSection);
+      }
+      
+      // 4. Terms (can split) - extract from terms-billing-section
+      const termsBillingSection = element.querySelector('.terms-billing-section');
+      const termsBox = termsBillingSection?.querySelector('.terms-box');
+      if (termsBox) {
+        termsBox.setAttribute('data-section-type', 'terms');
+        sections.push(termsBox);
+      }
+      
+      // 5. Billing (cannot split) - extract from terms-billing-section
+      const billingSection = termsBillingSection?.querySelector('.billing-section');
+      if (billingSection) {
+        billingSection.setAttribute('data-section-type', 'billing');
+        sections.push(billingSection);
+      }
+      
+      // 6. Footer (cannot split)
+      const footerTable = element.querySelector('.footer-table');
+      if (footerTable) {
+        sections.push(footerTable);
+      }
 
       if (!sections.length) {
         // Fallback: render whole element if sections not found
@@ -590,6 +671,180 @@
       } else {
         // Render each section individually
         for (const section of sections) {
+          // Special handling for block containers with tables that need splitting
+          if (section.classList.contains('block-container')) {
+            const blockTable = section.querySelector('.block-table');
+            const blockName = section.querySelector('.block-name');
+            const tableRows = blockTable?.querySelectorAll('tbody tr');
+            
+            // Render block name first if it exists
+            if (blockName) {
+              const nameCanvas = await html2canvas(blockName, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                logging: false,
+                windowWidth: blockName.scrollWidth,
+                windowHeight: blockName.scrollHeight,
+              });
+              addCanvasPaginated(nameCanvas, false);
+            }
+            
+            // Only split if table exists, has rows, and might not fit
+            if (blockTable && tableRows && tableRows.length > 1) {
+              // Check if full table would fit on current page
+              const tempFullCanvas = await html2canvas(blockTable, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                logging: false,
+                windowWidth: blockTable.scrollWidth,
+                windowHeight: blockTable.scrollHeight,
+              });
+              
+              const tableImgHeight = (tempFullCanvas.height * contentWidth) / tempFullCanvas.width;
+              const remainingSpace = pdfHeight - cursorY - margin;
+              
+              // If table doesn't fit on current page, split it in half
+              if (tableImgHeight > remainingSpace && tableRows.length > 1) {
+                const midPoint = Math.ceil(tableRows.length / 2);
+                
+                // Create temporary container for first half
+                const tempContainer1 = document.createElement('div');
+                tempContainer1.style.position = 'absolute';
+                tempContainer1.style.left = '-9999px';
+                tempContainer1.style.width = blockTable.offsetWidth + 'px';
+                document.body.appendChild(tempContainer1);
+                
+                const firstHalfTable = blockTable.cloneNode(true);
+                const firstTbody = firstHalfTable.querySelector('tbody');
+                firstTbody.innerHTML = '';
+                Array.from(tableRows).slice(0, midPoint).forEach(row => {
+                  firstTbody.appendChild(row.cloneNode(true));
+                });
+                tempContainer1.appendChild(firstHalfTable);
+                
+                // Create temporary container for second half
+                const tempContainer2 = document.createElement('div');
+                tempContainer2.style.position = 'absolute';
+                tempContainer2.style.left = '-9999px';
+                tempContainer2.style.width = blockTable.offsetWidth + 'px';
+                document.body.appendChild(tempContainer2);
+                
+                const secondHalfTable = blockTable.cloneNode(true);
+                const secondTbody = secondHalfTable.querySelector('tbody');
+                secondTbody.innerHTML = '';
+                Array.from(tableRows).slice(midPoint).forEach(row => {
+                  secondTbody.appendChild(row.cloneNode(true));
+                });
+                tempContainer2.appendChild(secondHalfTable);
+                
+                // Render first half
+                const firstHalfCanvas = await html2canvas(firstHalfTable, {
+                  scale: 2,
+                  useCORS: true,
+                  allowTaint: true,
+                  backgroundColor: '#ffffff',
+                  logging: false,
+                  windowWidth: firstHalfTable.scrollWidth,
+                  windowHeight: firstHalfTable.scrollHeight,
+                });
+                addCanvasPaginated(firstHalfCanvas, false);
+                
+                // Clean up
+                document.body.removeChild(tempContainer1);
+                
+                // Render second half (will go to next page if needed)
+                const secondHalfCanvas = await html2canvas(secondHalfTable, {
+                  scale: 2,
+                  useCORS: true,
+                  allowTaint: true,
+                  backgroundColor: '#ffffff',
+                  logging: false,
+                  windowWidth: secondHalfTable.scrollWidth,
+                  windowHeight: secondHalfTable.scrollHeight,
+                });
+                addCanvasPaginated(secondHalfCanvas, false);
+                
+                // Clean up
+                document.body.removeChild(tempContainer2);
+                
+                // Skip default rendering since we've handled this section
+                continue;
+              } else {
+                // Table fits, render it normally
+                const tableCanvas = await html2canvas(blockTable, {
+                  scale: 2,
+                  useCORS: true,
+                  allowTaint: true,
+                  backgroundColor: '#ffffff',
+                  logging: false,
+                  windowWidth: blockTable.scrollWidth,
+                  windowHeight: blockTable.scrollHeight,
+                });
+                addCanvasPaginated(tableCanvas, false);
+                // Skip default rendering since we've handled this section
+                continue;
+              }
+            } else if (blockTable) {
+              // Table exists but has 0 or 1 row, render it normally
+              const tableCanvas = await html2canvas(blockTable, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                logging: false,
+                windowWidth: blockTable.scrollWidth,
+                windowHeight: blockTable.scrollHeight,
+              });
+              addCanvasPaginated(tableCanvas, false);
+              // Skip default rendering since we've handled this section
+              continue;
+            } else {
+              // No table, but we already rendered the block name, skip default rendering
+              continue;
+            }
+          }
+          
+          // Handle terms (can split)
+          if (section.getAttribute('data-section-type') === 'terms' || section.classList.contains('terms-box')) {
+            const termsCanvas = await html2canvas(section, {
+              scale: 2,
+              useCORS: true,
+              allowTaint: true,
+              backgroundColor: '#ffffff',
+              logging: false,
+              windowWidth: section.scrollWidth,
+              windowHeight: section.scrollHeight,
+            });
+            // Terms can be split
+            addCanvasPaginated(termsCanvas, true);
+            continue;
+          }
+          
+          // Handle billing (cannot split)
+          if (section.getAttribute('data-section-type') === 'billing' || section.classList.contains('billing-section')) {
+            const billingCanvas = await html2canvas(section, {
+              scale: 2,
+              useCORS: true,
+              allowTaint: true,
+              backgroundColor: '#ffffff',
+              logging: false,
+              windowWidth: section.scrollWidth,
+              windowHeight: section.scrollHeight,
+            });
+            // Billing should NEVER be split
+            addCanvasPaginated(billingCanvas, false);
+            continue;
+          }
+          
+          // Default rendering for other sections
+          // Only blocks and special-notes can split
+          const shouldSplit = section.classList.contains('block-container') ||
+                             section.classList.contains('special-notes-section');
+          
           const sectionCanvas = await html2canvas(section, {
             scale: 2,
             useCORS: true,
@@ -599,7 +854,7 @@
             windowWidth: section.scrollWidth,
             windowHeight: section.scrollHeight,
           });
-          addCanvasPaginated(sectionCanvas);
+          addCanvasPaginated(sectionCanvas, shouldSplit);
         }
       }
 
