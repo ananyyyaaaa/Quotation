@@ -26,8 +26,10 @@
 
 .logo-container img.company-logo {
   width: 140px;
-  height: auto;
+  height: 50px;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  margin-top: 5px;
+  align-items: center;
 }
 
 .category-box {
@@ -38,6 +40,7 @@
   text-transform: uppercase;
   color: #000;
   text-align: center;
+  margin-top: 3px;
 }
 
 .address-container {
@@ -45,7 +48,7 @@
   text-align: left;
   font-size: 12px;
   line-height: 1.6;
-  margin-top: 10px;
+  margin-top: 5px;
   color: #000;
   font-weight: 500;
 }
@@ -557,6 +560,5 @@
     break-before: page;
   }
 }
-
 
 
