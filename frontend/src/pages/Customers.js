@@ -67,7 +67,7 @@ const Customers = () => {
       <div className="customers-header">
         <div className="header-content">
           <div className="header-left">
-            <h1>👥 Customers</h1>
+            <h1>Customers</h1>
             <p>Manage your customer database</p>
           </div>
           <div className="header-right">

@@ -8,7 +8,7 @@ const Help = () => {
       <div className="help-header">
         <div className="header-content">
           <div className="header-left">
-            <h1>❓ Help & Support</h1>
+            <h1>Help & Support</h1>
             <p>Get assistance and find answers to your questions</p>
           </div>
         </div>
@@ -23,10 +23,10 @@ const Help = () => {
             <p>Need help? Reach out to our support team</p>
             <div className="contact-email">
               <a href="mailto:support@inoviksolutions.com" className="email-link">
-                📧 info.mananresources@gmail.com
+                info.mananresources@gmail.com
               </a><br /><br />
               <a href="" className="email-link">
-                📞 +91-8146428915 
+                +91-8146428915 
               </a>
             </div>
           </div>

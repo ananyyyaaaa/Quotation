@@ -111,7 +111,7 @@ const Settings = () => {
       <div className="settings-header">
         <div className="header-content">
           <div className="header-left">
-            <h1>⚙️ Settings</h1>
+            <h1>Settings</h1>
             <p>Configure your application preferences</p>
           </div>
         </div>

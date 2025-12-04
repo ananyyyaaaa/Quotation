@@ -11,25 +11,25 @@ const Sidebar = ({ onLogout }) => {
     {
       id: "dashboard",
       label: "Dashboard",
-      icon: "📊",
+      icon: "",
       path: "/dashboard",
     },
     {
       id: "customers",
       label: "Customers",
-      icon: "👥",
+      icon: "",
       path: "/customers",
     },
     {
       id: "settings",
       label: "Settings",
-      icon: "⚙️",
+      icon: "",
       path: "/settings",
     },
     {
       id: "help",
       label: "Help",
-      icon: "❓",
+      icon: "",
       path: "/help",
     },
   ];
@@ -74,7 +74,7 @@ const Sidebar = ({ onLogout }) => {
 
       <div className="sidebar-footer">
         <button className="logout-btn" onClick={handleLogout}>
-          <span className="nav-icon">🔓</span>
+          <span className="nav-icon"></span>
           {!isCollapsed && <span className="nav-label">Logout</span>}
         </button>
       </div>

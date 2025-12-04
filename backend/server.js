@@ -9,6 +9,7 @@ import referenceRoutes from "./routes/referenceRoutes.js";
 import managerRoutes from "./routes/managerRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
+import pdfRoutes from "./routes/pdfRoutes.js";
 import { ensureAuth } from "./controllers/authController.js";
 import bcrypt from "bcryptjs";
 import User from "./models/User.js";
@@ -57,6 +58,7 @@ app.use("/api/settings", ensureAuth, settingsRoutes);
 app.use("/api/designers", ensureAuth, designerRoutes);
 app.use("/api/references", ensureAuth, referenceRoutes);
 app.use("/api/managers", ensureAuth, managerRoutes);
+app.use("/api/pdf", pdfRoutes);
 
 // Test route
 app.get("/", (req, res) => {

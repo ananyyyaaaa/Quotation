@@ -86,7 +86,7 @@ const Dashboard = ({ onLogout }) => {
       <div className="dashboard-header">
         <div className="header-content">
           <div className="header-left">
-            <h1>📊 Dashboard</h1>
+            <h1>Dashboard</h1>
             <p>Manage your quotations</p>
           </div>
           <div className="header-right">
@@ -94,7 +94,7 @@ const Dashboard = ({ onLogout }) => {
               + New Quotation
             </button>
             <button className="action-btn secondary" onClick={onLogout}>
-              🔓 Logout
+              Logout
             </button>
           </div>
         </div>
@@ -109,11 +109,11 @@ const Dashboard = ({ onLogout }) => {
           </div>
         ) : quotations.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">📋</div>
+            <div className="empty-icon"></div>
             <h2>No quotations yet</h2>
             <p>Create your first quotation to get started</p>
             <button className="action-btn primary" onClick={handleNewQuotation}>
-              ➕ New Quotation
+              + New Quotation
             </button>
           </div>
         ) : (
@@ -153,13 +153,13 @@ const Dashboard = ({ onLogout }) => {
                         className="action-btn-small view-btn"
                         onClick={() => handleView(quotation._id)}
                       >
-                        👁️ View
+                        View
                       </button>
                       <button
                         className="action-btn-small edit-btn"
                         onClick={() => handleEdit(quotation._id)}
                       >
-                        ✏️ Edit
+                        Edit
                       </button>
                     </td>
                   </tr>

@@ -2,12 +2,11 @@
   import { useParams, useNavigate } from "react-router-dom";
   import ProductCustomerSection from "./ProductCustomerSection";
   import BlocksSection from "./BlocksSections";
-  import Page from "./Page";
   import PopupContainer from "../components/PopupContainer";
   import { usePopupManager } from "../hooks/usePopupManager";
-  import jsPDF from "jspdf";
-  import html2canvas from "html2canvas";
   import "./Quotation.css";
+  import Page from "./Page";
+  import { renderToHTML, imageToBase64 } from "../utils/renderToHTML";
 
 
   const Quotation = ({ onLogout, mode }) => {
@@ -438,22 +437,68 @@
       console.log("=== END TEST DATA ===");
     };
 
+    // Show print preview (like Ctrl+P)
+    const handlePrintPreview = (quotationNumber) => {
+      if (!printRef.current) {
+        showError("PDF content not ready. Please try again.");
+        return;
+      }
+      
+      // Create a new window with the print content
+      const printWindow = window.open("", "_blank");
+      const element = printRef.current.cloneNode(true);
+      
+      // Get computed styles and inline them
+      const styles = Array.from(document.styleSheets)
+        .map(sheet => {
+          try {
+            return Array.from(sheet.cssRules)
+              .map(rule => rule.cssText)
+              .join("\n");
+          } catch (e) {
+            return "";
+          }
+        })
+        .join("\n");
+      
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${quotationNumber || "Quotation"}</title>
+            <style>${styles}</style>
+          </head>
+          <body>
+            ${element.outerHTML}
+          </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      
+      // Trigger print dialog after content loads
+      setTimeout(() => {
+        printWindow.print();
+      }, 250);
+    };
+
     const handleDownloadPDF = async () => {
     try {
       console.log("=== PDF DOWNLOAD START ===");
-      console.log("Print data exists:", !!printData);
-      console.log("Print ref exists:", !!printRef.current);
+      setLoading(true);
       
       // Check if we have print data
       if (!printData || (!printData.customerData && !printData.blocksData)) {
         console.log("❌ No print data available");
         showError("No quotation data available. Please save a quotation with customer and block data first.");
+        setLoading(false);
         return;
       }
 
       if (!printRef.current) {
         console.log("❌ Print ref not ready");
         showError("PDF content not ready. Please try again.");
+        setLoading(false);
         return;
       }
       
@@ -461,15 +506,17 @@
       const currentCustomerData = customerRef.current?.getCustomerData?.() || {};
       const latestCategory = currentCustomerData.category || printData.customerData?.category || "";
       
-      console.log("📋 Category check - Latest:", latestCategory, "Current in printData:", printData.customerData?.category);
+      console.log("📋 Category check - Latest:", latestCategory);
       
       // ALWAYS update printData with latest category before generating PDF
       const updatedPrintData = {
         ...printData,
         customerData: {
           ...printData.customerData,
-          category: latestCategory, // Always use the latest category from customerRef
+          category: latestCategory,
         },
+        specialDiscount: specialDiscount || 0,
+        gstPercent: gstPercent || 0,
       };
       
       // Update state immediately
@@ -477,419 +524,134 @@
       
       // Wait for state to update and component to re-render
       await new Promise(resolve => setTimeout(resolve, 300));
-      
-      console.log("✅ Data validation passed");
-      console.log("Updated print data:", JSON.stringify(updatedPrintData, null, 2));
-      console.log("Latest category:", latestCategory);
 
+      // First show print preview
+      handlePrintPreview(updatedPrintData?.quotationNumber);
+      
+      // Then generate PDF via backend
       const element = printRef.current;
 
       // Check if element has content
       if (!element || element.offsetWidth === 0 || element.offsetHeight === 0) {
         console.log("Element dimensions:", { width: element?.offsetWidth, height: element?.offsetHeight });
         showError("PDF content is empty. Please ensure you have saved a quotation with proper data.");
+        setLoading(false);
         return;
       }
 
-      console.log("📸 Starting section-wise capture for clean pagination...");
-      console.log("Element dimensions:", { width: element.offsetWidth, height: element.offsetHeight });
-      
-      // Small delay to ensure content is rendered
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // PDF setup
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10; // 10mm margins
-      const contentWidth = pdfWidth - margin * 2;
-      const pageUsableHeight = pdfHeight - margin * 2;
-      let cursorY = margin;
-
-      // Helper: add a canvas to PDF with pagination (splits tall sections)
-      const addCanvasPaginated = (canvasToAdd, splitInHalf = false) => {
-        const sectionImgHeight = (canvasToAdd.height * contentWidth) / canvasToAdd.width;
-        const remainingSpace = pdfHeight - cursorY - margin;
-        
-        // PRIORITY 1: Check if section doesn't fit and should be split in half
-        if (sectionImgHeight > remainingSpace && splitInHalf && canvasToAdd.height > 50 && remainingSpace > 20) {
-          // Split in half - put first half on current page, second half on next
-          const halfHeight = Math.floor(canvasToAdd.height / 2);
-          
-          // First half - top portion
-          const firstHalfCanvas = document.createElement('canvas');
-          firstHalfCanvas.width = canvasToAdd.width;
-          firstHalfCanvas.height = halfHeight;
-          const firstCtx = firstHalfCanvas.getContext('2d');
-          firstCtx.drawImage(
-            canvasToAdd,
-            0, 0, canvasToAdd.width, halfHeight,
-            0, 0, firstHalfCanvas.width, firstHalfCanvas.height
-          );
-          const firstHalfImg = firstHalfCanvas.toDataURL('image/jpeg', 0.95);
-          const firstHalfHeight = (halfHeight * contentWidth) / canvasToAdd.width;
-          
-          // Add first half to current page (only if it fits)
-          if (firstHalfHeight <= remainingSpace) {
-            pdf.addImage(firstHalfImg, 'JPEG', margin, cursorY, contentWidth, firstHalfHeight);
-            cursorY += firstHalfHeight;
-          } else {
-            // First half also doesn't fit, go to next page
-            pdf.addPage();
-            cursorY = margin;
-            pdf.addImage(firstHalfImg, 'JPEG', margin, cursorY, contentWidth, firstHalfHeight);
-            cursorY += firstHalfHeight;
-          }
-          
-          // Second half - bottom portion (on next page)
-          pdf.addPage();
-          cursorY = margin;
-          
-          const secondHalfCanvas = document.createElement('canvas');
-          secondHalfCanvas.width = canvasToAdd.width;
-          secondHalfCanvas.height = canvasToAdd.height - halfHeight;
-          const secondCtx = secondHalfCanvas.getContext('2d');
-          secondCtx.drawImage(
-            canvasToAdd,
-            0, halfHeight, canvasToAdd.width, canvasToAdd.height - halfHeight,
-            0, 0, secondHalfCanvas.width, secondHalfCanvas.height
-          );
-          const secondHalfImg = secondHalfCanvas.toDataURL('image/jpeg', 0.95);
-          const secondHalfHeight = ((canvasToAdd.height - halfHeight) * contentWidth) / canvasToAdd.width;
-          
-          pdf.addImage(secondHalfImg, 'JPEG', margin, cursorY, contentWidth, secondHalfHeight);
-          cursorY += secondHalfHeight;
-          return;
-        }
-        
-        // PRIORITY 2: If entire section taller than page, slice it
-        if (sectionImgHeight > pageUsableHeight) {
-          let remainingPx = canvasToAdd.height;
-          let sourceY = 0;
-          const pxPerMm = canvasToAdd.height / sectionImgHeight; // pixels per mm at current scaling
-          while (remainingPx > 0) {
-            const remainingMmHeight = (remainingPx / pxPerMm);
-            const mmFitThisPage = Math.min(pageUsableHeight, remainingMmHeight);
-            const pxFitThisPage = mmFitThisPage * pxPerMm;
-
-            // New page if not enough space left on current
-            if (cursorY !== margin && (pdfHeight - cursorY - margin) < 1) {
-              pdf.addPage();
-              cursorY = margin;
-            }
-
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = canvasToAdd.width;
-            tempCanvas.height = pxFitThisPage;
-            const tctx = tempCanvas.getContext('2d');
-            tctx.drawImage(
-              canvasToAdd,
-              0, sourceY, canvasToAdd.width, pxFitThisPage,
-              0, 0, tempCanvas.width, tempCanvas.height
-            );
-            const chunkImg = tempCanvas.toDataURL('image/jpeg', 0.95);
-
-            // If chunk does not fit the remaining space on page, move to next page
-            const remainingSpaceMm = pdfHeight - cursorY - margin;
-            const chunkMmHeight = (tempCanvas.height * contentWidth) / tempCanvas.width;
-            if (chunkMmHeight > remainingSpaceMm + 0.1) {
-              pdf.addPage();
-              cursorY = margin;
-            }
-
-            pdf.addImage(chunkImg, 'JPEG', margin, cursorY, contentWidth, chunkMmHeight);
-            cursorY += chunkMmHeight;
-
-            sourceY += pxFitThisPage;
-            remainingPx -= pxFitThisPage;
-            if (remainingPx > 0) {
-              pdf.addPage();
-              cursorY = margin;
-            }
-          }
-          return;
-        }
-
-        // Section fits in a single page: if not enough space left, go to next page first
-        if ((pdfHeight - cursorY - margin) < sectionImgHeight) {
-          pdf.addPage();
-          cursorY = margin;
-        }
-        const imgDataLocal = canvasToAdd.toDataURL('image/jpeg', 0.95);
-        pdf.addImage(imgDataLocal, 'JPEG', margin, cursorY, contentWidth, sectionImgHeight);
-        cursorY += sectionImgHeight;
-      };
-
-      // Collect sections in order: blocks → special notes → terms → billing → footer
-      const sections = [];
-      
-      // 1. Header sections (cannot split)
-      sections.push(...element.querySelectorAll('.header-section, .top-section, .intro-section'));
-      
-      // 2. Blocks (can split)
-      sections.push(...element.querySelectorAll('.block-container'));
-      
-      // 3. Special notes (can split)
-      const specialNotesSection = element.querySelector('.special-notes-section');
-      if (specialNotesSection) {
-        sections.push(specialNotesSection);
-      }
-      
-      // 4. Terms (can split) - extract from terms-billing-section
-      const termsBillingSection = element.querySelector('.terms-billing-section');
-      const termsBox = termsBillingSection?.querySelector('.terms-box');
-      if (termsBox) {
-        termsBox.setAttribute('data-section-type', 'terms');
-        sections.push(termsBox);
-      }
-      
-      // 5. Billing (cannot split) - extract from terms-billing-section
-      const billingSection = termsBillingSection?.querySelector('.billing-section');
-      if (billingSection) {
-        billingSection.setAttribute('data-section-type', 'billing');
-        sections.push(billingSection);
-      }
-      
-      // 6. Footer (cannot split)
-      const footerTable = element.querySelector('.footer-table');
-      if (footerTable) {
-        sections.push(footerTable);
-      }
-
-      if (!sections.length) {
-        // Fallback: render whole element if sections not found
-        const wholeCanvas = await html2canvas(element, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-          windowWidth: element.scrollWidth,
-          windowHeight: element.scrollHeight,
-        });
-        addCanvasPaginated(wholeCanvas);
+      // Fetch CSS content
+      const cssResponse = await fetch("/src/pages/Page.css");
+      let cssContent = "";
+      if (cssResponse.ok) {
+        cssContent = await cssResponse.text();
       } else {
-        // Render each section individually
-        for (const section of sections) {
-          // Special handling for block containers with tables that need splitting
-          if (section.classList.contains('block-container')) {
-            const blockTable = section.querySelector('.block-table');
-            const blockName = section.querySelector('.block-name');
-            const tableRows = blockTable?.querySelectorAll('tbody tr');
-            
-            // Render block name first if it exists
-            if (blockName) {
-              const nameCanvas = await html2canvas(blockName, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                logging: false,
-                windowWidth: blockName.scrollWidth,
-                windowHeight: blockName.scrollHeight,
-              });
-              addCanvasPaginated(nameCanvas, false);
+        // Fallback: try to get CSS from style sheets
+        cssContent = Array.from(document.styleSheets)
+          .map(sheet => {
+            try {
+              return Array.from(sheet.cssRules)
+                .map(rule => rule.cssText)
+                .join("\n");
+            } catch (e) {
+              return "";
             }
-            
-            // Only split if table exists, has rows, and might not fit
-            if (blockTable && tableRows && tableRows.length > 1) {
-              // Check if full table would fit on current page
-              const tempFullCanvas = await html2canvas(blockTable, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                logging: false,
-                windowWidth: blockTable.scrollWidth,
-                windowHeight: blockTable.scrollHeight,
-              });
-              
-              const tableImgHeight = (tempFullCanvas.height * contentWidth) / tempFullCanvas.width;
-              const remainingSpace = pdfHeight - cursorY - margin;
-              
-              // If table doesn't fit on current page, split it in half
-              if (tableImgHeight > remainingSpace && tableRows.length > 1) {
-                const midPoint = Math.ceil(tableRows.length / 2);
-                
-                // Create temporary container for first half
-                const tempContainer1 = document.createElement('div');
-                tempContainer1.style.position = 'absolute';
-                tempContainer1.style.left = '-9999px';
-                tempContainer1.style.width = blockTable.offsetWidth + 'px';
-                document.body.appendChild(tempContainer1);
-                
-                const firstHalfTable = blockTable.cloneNode(true);
-                const firstTbody = firstHalfTable.querySelector('tbody');
-                firstTbody.innerHTML = '';
-                Array.from(tableRows).slice(0, midPoint).forEach(row => {
-                  firstTbody.appendChild(row.cloneNode(true));
-                });
-                tempContainer1.appendChild(firstHalfTable);
-                
-                // Create temporary container for second half
-                const tempContainer2 = document.createElement('div');
-                tempContainer2.style.position = 'absolute';
-                tempContainer2.style.left = '-9999px';
-                tempContainer2.style.width = blockTable.offsetWidth + 'px';
-                document.body.appendChild(tempContainer2);
-                
-                const secondHalfTable = blockTable.cloneNode(true);
-                const secondTbody = secondHalfTable.querySelector('tbody');
-                secondTbody.innerHTML = '';
-                Array.from(tableRows).slice(midPoint).forEach(row => {
-                  secondTbody.appendChild(row.cloneNode(true));
-                });
-                tempContainer2.appendChild(secondHalfTable);
-                
-                // Render first half
-                const firstHalfCanvas = await html2canvas(firstHalfTable, {
-                  scale: 2,
-                  useCORS: true,
-                  allowTaint: true,
-                  backgroundColor: '#ffffff',
-                  logging: false,
-                  windowWidth: firstHalfTable.scrollWidth,
-                  windowHeight: firstHalfTable.scrollHeight,
-                });
-                addCanvasPaginated(firstHalfCanvas, false);
-                
-                // Clean up
-                document.body.removeChild(tempContainer1);
-                
-                // Render second half (will go to next page if needed)
-                const secondHalfCanvas = await html2canvas(secondHalfTable, {
-                  scale: 2,
-                  useCORS: true,
-                  allowTaint: true,
-                  backgroundColor: '#ffffff',
-                  logging: false,
-                  windowWidth: secondHalfTable.scrollWidth,
-                  windowHeight: secondHalfTable.scrollHeight,
-                });
-                addCanvasPaginated(secondHalfCanvas, false);
-                
-                // Clean up
-                document.body.removeChild(tempContainer2);
-                
-                // Skip default rendering since we've handled this section
-                continue;
-              } else {
-                // Table fits, render it normally
-                const tableCanvas = await html2canvas(blockTable, {
-                  scale: 2,
-                  useCORS: true,
-                  allowTaint: true,
-                  backgroundColor: '#ffffff',
-                  logging: false,
-                  windowWidth: blockTable.scrollWidth,
-                  windowHeight: blockTable.scrollHeight,
-                });
-                addCanvasPaginated(tableCanvas, false);
-                // Skip default rendering since we've handled this section
-                continue;
-              }
-            } else if (blockTable) {
-              // Table exists but has 0 or 1 row, render it normally
-              const tableCanvas = await html2canvas(blockTable, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                logging: false,
-                windowWidth: blockTable.scrollWidth,
-                windowHeight: blockTable.scrollHeight,
-              });
-              addCanvasPaginated(tableCanvas, false);
-              // Skip default rendering since we've handled this section
-              continue;
-            } else {
-              // No table, but we already rendered the block name, skip default rendering
-              continue;
-            }
-          }
-          
-          // Handle terms (can split)
-          if (section.getAttribute('data-section-type') === 'terms' || section.classList.contains('terms-box')) {
-            const termsCanvas = await html2canvas(section, {
-              scale: 2,
-              useCORS: true,
-              allowTaint: true,
-              backgroundColor: '#ffffff',
-              logging: false,
-              windowWidth: section.scrollWidth,
-              windowHeight: section.scrollHeight,
-            });
-            // Terms can be split
-            addCanvasPaginated(termsCanvas, true);
-            continue;
-          }
-          
-          // Handle billing (cannot split)
-          if (section.getAttribute('data-section-type') === 'billing' || section.classList.contains('billing-section')) {
-            const billingCanvas = await html2canvas(section, {
-              scale: 2,
-              useCORS: true,
-              allowTaint: true,
-              backgroundColor: '#ffffff',
-              logging: false,
-              windowWidth: section.scrollWidth,
-              windowHeight: section.scrollHeight,
-            });
-            // Billing should NEVER be split
-            addCanvasPaginated(billingCanvas, false);
-            continue;
-          }
-          
-          // Default rendering for other sections
-          // Only blocks and special-notes can split
-          const shouldSplit = section.classList.contains('block-container') ||
-                             section.classList.contains('special-notes-section');
-          
-          const sectionCanvas = await html2canvas(section, {
-            scale: 2,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: '#ffffff',
-            logging: false,
-            windowWidth: section.scrollWidth,
-            windowHeight: section.scrollHeight,
-          });
-          addCanvasPaginated(sectionCanvas, shouldSplit);
+          })
+          .join("\n");
+      }
+
+      // Collect all images and convert to base64
+      const imageMap = {};
+      const logoImg = element.querySelector(".company-logo");
+      if (logoImg && logoImg.src) {
+        try {
+          imageMap.logo = await imageToBase64(logoImg.src);
+        } catch (e) {
+          console.warn("Failed to convert logo to base64:", e);
         }
       }
 
-      // Save PDF
-      const fileName = `${printData?.quotationNumber || "quotation"}.pdf`;
-      console.log("💾 Saving PDF:", fileName);
-      pdf.save(fileName);
-      
-      console.log("✅ PDF saved successfully");
-      console.log("=== PDF DOWNLOAD END ===");
+      // Collect item images
+      const itemImages = element.querySelectorAll(".block-image");
+      for (const img of itemImages) {
+        if (img.src && !imageMap[img.src]) {
+          try {
+            imageMap[img.src] = await imageToBase64(img.src);
+          } catch (e) {
+            console.warn("Failed to convert image to base64:", e);
+          }
+        }
+      }
+
+      // Generate HTML from React component
+      const html = await renderToHTML(Page, {
+        data: {
+          ...updatedPrintData,
+          settings: settings || null,
+        }
+      }, cssContent, imageMap);
+
+      console.log("✅ HTML generated, sending to backend...");
+
+      // Send HTML to backend for PDF generation
+      const token = localStorage.getItem("token");
+      const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
+      const fileName = `${updatedPrintData?.quotationNumber || "quotation"}.pdf`;
+
+      const response = await fetch(`${API_BASE_URL}/api/pdf/generate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          html,
+          filename: fileName,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate PDF");
+      }
+
+      // Download PDF
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      console.log("✅ PDF downloaded successfully");
       showSuccess("PDF downloaded successfully!");
+      setLoading(false);
     } catch (error) {
       console.error("❌ Error generating PDF:", error);
       console.error("Error stack:", error.stack);
       showError("Error generating PDF: " + error.message);
+      setLoading(false);
     }
   };
 
-
-    return (
+  return (
       <div className="quotation-page">
         <PopupContainer popups={popups} onClose={hidePopup} />
         
         {/* Header */}
         <div className="quotation-header">
           <div className="left-header">
-            <button className="save-btn" onClick={handleHome}>🏡 Home</button>
-            {!isViewMode && <button className="save-btn" onClick={handleSave}>💾 Save</button>}
-            <button className="save-btn" onClick={handleDownloadPDF}>📥 Download PDF</button>
+            <button className="save-btn" onClick={handleHome}>Home</button>
+            {!isViewMode && <button className="save-btn" onClick={handleSave}>Save</button>}
+            <button className="save-btn" onClick={handleDownloadPDF}>Download PDF</button>
             {/* <button className="save-btn" onClick={handleTestSave} style={{ backgroundColor: "#10b981" }}>Test Save</button> */}
           </div>
 
           <div className="right-header">
             <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8, gap: 8 }}>
-              {isViewMode && <span className="save-btn">👁️ View Mode</span>}
+              {isViewMode && <span className="save-btn">View Mode</span>}
               {/* <button className="save-btn" onClick={onLogout}>🔓 Logout</button> */}
             </div>
 
@@ -1026,8 +788,8 @@
         </div>
 
         <div className="bottom-actions">
-          {!isViewMode && <button className="save-btn" onClick={handleSave}>💾 Save</button>}
-          <button className="save-btn" onClick={handleDownloadPDF}>📥 Download PDF</button>
+          {!isViewMode && <button className="save-btn" onClick={handleSave}>Save</button>}
+          <button className="save-btn" onClick={handleDownloadPDF}>Download PDF</button>
         </div>
 
         {/* Page for PDF - Always visible for PDF generation */}

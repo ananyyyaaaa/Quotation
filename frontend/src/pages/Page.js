@@ -152,8 +152,9 @@ const Page = forwardRef(({ data = {} }, ref) => {
         <p>This proposal is valid for <b>15</b> days, i.e., till <b>{validTill}</b>.</p>
       </section>
 
-      <p>Remarks: {customerData.remarks} || {}</p>
-      
+      {customerData.remarks && customerData.remarks.trim() && (
+        <p style={{ marginTop: "8px", marginBottom: "8px" }}>Remarks: {customerData.remarks}</p>
+      )}
 
       {/* BLOCKS SECTION */}
       <section className="block-section">

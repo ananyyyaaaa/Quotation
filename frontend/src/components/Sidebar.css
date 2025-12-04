@@ -10,7 +10,6 @@
   left: 0;
   top: 0;
   z-index: 1000;
-  transition: width 0.3s ease;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -33,7 +32,6 @@
   cursor: pointer;
   font-size: var(--text-sm);
   color: var(--gray-600);
-  transition: all var(--transition-fast);
 }
 
 .collapse-btn:hover {
@@ -65,7 +63,6 @@
   align-items: center;
   gap: var(--space-3);
   cursor: pointer;
-  transition: all var(--transition-fast);
   color: var(--gray-700);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
@@ -124,7 +121,6 @@
   align-items: center;
   gap: var(--space-3);
   cursor: pointer;
-  transition: all var(--transition-fast);
   color: var(--red-600);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);

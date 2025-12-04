@@ -2,7 +2,7 @@
 .app-layout {
   display: flex;
   min-height: 100vh;
-  background: var(--gradient-surface);
+  background: #f5f7fa;
 }
 
 .main-content {
@@ -10,7 +10,6 @@
   margin-left: 250px;
   display: flex;
   flex-direction: column;
-  transition: margin-left 0.3s ease;
 }
 
 .page-content {
